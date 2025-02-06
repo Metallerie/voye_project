@@ -30,9 +30,10 @@ class DocumentProcessor:
         module_name = f"{self.extraction_method.lower()}_processor"
         module_path = f"{module_name}"
         sys.path.append("/data/voye/app/")  # Ajout du chemin des modules dynamiques
-        module = importlib.import_module(module_path)
-        return module.Processor(self.document_path, self.api_key)
-            except ImportError:
+        try:
+            module = importlib.import_module(module_path)
+            return module.Processor(self.document_path, self.api_key)
+        except ImportError:
             raise ValueError(f"Module {module_path} non trouvé")
     
     def process(self):
