@@ -1,7 +1,6 @@
 import requests
 
 class Processor:
-class Processor:
     def __init__(self, document_path, supplier_library=None, api_key=None):
         self.document_path = document_path
         self.supplier_library = supplier_library
