@@ -18,6 +18,9 @@ class Processor:
                 text += pytesseract.image_to_string(img) + "\n"
         else:
             text = pytesseract.image_to_string(Image.open(self.document_path))
-
+            
+        print("Texte brut OCR :", text)  # DEBUG
         return {"text": text}
+        
+
 
