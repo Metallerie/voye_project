@@ -1,0 +1,25 @@
+{
+  "rib": {
+    "identification_banque": {
+      "nom_banque": "",
+      "adresse_banque": "",
+      "code_banque": "",
+      "code_guichet": ""
+    },
+    "compte_bancaire": {
+      "numero_compte": "",
+      "cle_RIB": "",
+      "IBAN": "",
+      "BIC": ""
+    },
+    "titulaire_compte": {
+      "nom": "",
+      "prenom": "",
+      "adresse": ""
+    },
+    "informations_supplementaires": {
+      "devise": "",
+      "pays": ""
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "kbis": {
+    "identification": {
+      "raison_sociale": "",
+      "forme_juridique": "",
+      "SIREN": "",
+      "SIRET": "",
+      "TVA_intracommunautaire": ""
+    },
+    "siege_social": {
+      "adresse": "",
+      "code_postal": "",
+      "ville": "",
+      "pays": ""
+    },
+    "representant_legal": {
+      "nom": "",
+      "prenom": "",
+      "date_naissance": "",
+      "lieu_naissance": "",
+      "nationalite": ""
+    },
+    "activite": {
+      "code_APE": "",
+      "description": ""
+    },
+    "capital_social": {
+      "montant": 0.0,
+      "devise": ""
+    },
+    "immatriculation": {
+      "date_immatriculation": "",
+      "registre": ""
+    },
+    "documents_associes": {
+      "statuts": "",
+      "attestation_publication": "",
+      "autres": ""
+    }
+  }
+}
+

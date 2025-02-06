@@ -1,0 +1,53 @@
+{
+  "facture": {
+    "identification": {
+      "vendeur": {
+        "nom": "",
+        "adresse": "",
+        "SIREN": "",
+        "TVA_intracommunautaire": ""
+      },
+      "client": {
+        "nom": "",
+        "adresse": "",
+        "SIREN": "",
+        "TVA_intracommunautaire": ""
+      }
+    },
+    "references": {
+      "numero_facture": "",
+      "date_emission": "",
+      "date_echeance": ""
+    },
+    "details_vente": [
+      {
+        "description_produit": "",
+        "quantite": 0,
+        "prix_unitaire_HT": 0.0,
+        "TVA": 0.0,
+        "montant_TTC": 0.0
+      }
+    ],
+    "totaux": {
+      "total_HT": 0.0,
+      "total_TVA": 0.0,
+      "total_TTC": 0.0
+    },
+    "paiement": {
+      "mode_paiement": "",
+      "conditions_paiement": "",
+      "IBAN": "",
+      "BIC": ""
+    },
+    "mentions_legales": {
+      "mentions_obligatoires": "",
+      "penalites_retard": "",
+      "escompte": "",
+      "TVA_non_applicable": ""
+    },
+    "extraction": {
+      "method": "Mindee",
+      "api_key": "5ff0a5fdc10cdface0221a3c9f778a7d"
+    }
+  }
+}

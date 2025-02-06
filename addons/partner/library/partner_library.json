@@ -1,0 +1,81 @@
+{
+    "required_fields": {
+        "company_name": "Nom ou Raison sociale",
+        "legal_form": "Forme juridique (SARL, SAS, EI...)",
+        "siren": "Numéro SIREN",
+        "siret": "Numéro SIRET",
+        "rcs": "Numéro RCS (si applicable)",
+        "ape_code": "Code APE / NAF",
+        "vat_number": "Numéro TVA intra-communautaire",
+        "address": {
+            "street": "Rue et numéro",
+            "postal_code": "Code postal",
+            "city": "Ville",
+            "country": "Pays"
+        },
+        "contact": {
+            "phone": "Numéro de téléphone",
+            "email": "Adresse email",
+            "website": "Site web (si existant)"
+        },
+        "bank_details": {
+            "iban": "IBAN",
+            "bic": "BIC / SWIFT",
+            "bank_name": "Nom de la banque"
+        },
+        "accounting_contact": {
+            "name": "Nom du contact comptable",
+            "email": "Email du contact comptable",
+            "phone": "Téléphone du contact comptable"
+        },
+        "documents": {
+            "kbis": "Extrait Kbis (fichier PDF)",
+            "rib": "RIB bancaire (fichier PDF)"
+        }
+    },
+    "optional_fields": {
+        "commercial_info": {
+            "ceo_name": "Nom du dirigeant",
+            "sales_contacts": [
+                {
+                    "name": "Nom du commercial",
+                    "phone": "Téléphone",
+                    "email": "Email"
+                }
+            ],
+            "activity_sector": "Secteur d’activité",
+            "company_size": "TPE, PME, Grand Groupe",
+            "creation_date": "Date de création"
+        },
+        "financial_terms": {
+            "payment_method": "Mode de règlement préféré (virement, chèque, LCR, prélèvement)",
+            "payment_terms": "Délais de paiement (30j, 45j fin de mois, 60j, etc.)",
+            "credit_limit": "Plafond de crédit accordé",
+            "discounts": "Remises commerciales (si applicable)"
+        },
+        "internal_references": {
+            "erp_code": "Code interne dans l’ERP",
+            "invoice_history": "Historique des factures et paiements",
+            "order_history": "Historique des commandes et devis",
+            "notes": "Notes et commentaires sur la relation commerciale"
+        }
+    },
+    "qr_code_structure": [
+        "company_name",
+        "siret",
+        "vat_number",
+        "address.street",
+        "address.city",
+        "address.country",
+        "contact.phone",
+        "contact.email",
+        "bank_details.iban",
+        "bank_details.bic",
+        "accounting_contact.name",
+        "accounting_contact.email"
+    ],
+    "file_naming_convention": {
+        "client": "CLIENT_{siret}_QRCODE.png",
+        "supplier": "FOURNISSEUR_{siret}_QRCODE.png"
+    }
+}
