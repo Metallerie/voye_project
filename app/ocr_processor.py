@@ -4,9 +4,11 @@ from PIL import Image
 import os
 
 class Processor:
-    def __init__(self, document_path, api_key=None):
+class Processor:
+    def __init__(self, document_path, supplier_library=None, api_key=None):
         self.document_path = document_path
-
+        self.supplier_library = supplier_library
+        self.api_key = api_key
     def extract_data(self):
         # Vérifie si le fichier est un PDF et le convertit en images
         if self.document_path.lower().endswith(".pdf"):
