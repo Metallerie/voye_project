@@ -46,6 +46,7 @@ class DocumentProcessor:
     
     def process(self):
         extracted_data = self.processor.extract_data()
+        print("Données brutes extraites :", extracted_data)  # DEB
         structured_data = self.structure_data(extracted_data)
         print("Données structurées :", structured_data)
         self.move_processed_file()
