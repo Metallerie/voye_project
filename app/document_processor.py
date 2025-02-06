@@ -50,8 +50,8 @@ class DocumentProcessor:
         if not os.path.exists(self.filestore_dir):
             os.makedirs(self.filestore_dir)
         
-        partner_name = data.get("vendeur", "unknown").replace(" ", "_")
-        invoice_number = data.get("num_facture", "0000")
+        partner_name = data.get("vendeur", "unknown").replace(" ", "_").replace("/", "_")
+        invoice_number = data.get("num_facture", "0000").replace("/", "_")
         timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
         
         qr_data = json.dumps(data, ensure_ascii=False, indent=2)
