@@ -1,10 +1,12 @@
 import requests
 
 class Processor:
-    def __init__(self, document_path, api_key):
+class Processor:
+    def __init__(self, document_path, supplier_library=None, api_key=None):
         self.document_path = document_path
+        self.supplier_library = supplier_library
         self.api_key = api_key
-    
+        
     def extract_data(self):
         if not self.api_key:
             raise ValueError("Clé API Mindee non fournie")
