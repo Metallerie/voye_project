@@ -44,7 +44,7 @@ class DocumentProcessor:
         extracted_data = self.processor.extract_data()
         if asyncio.iscoroutine(extracted_data):
             extracted_data = await extracted_data
-        print("Données extraites :", extracted_data)
+        print("Données extraites :", json.dumps(extracted_data, indent=4, ensure_ascii=False))
         
         # Stocker toutes les données extraites dans le fichier JSON
         self.store_json_data(extracted_data)
@@ -60,7 +60,7 @@ class DocumentProcessor:
         json_path = os.path.join(self.filestore_dir, json_filename)
         
         with open(json_path, "w", encoding="utf-8") as json_file:
-            json.dump(data, json_file, ensure_ascii=False, indent=2)
+            json.dump(data, json_file, ensure_ascii=False, indent=4)
         
         print(f"Fichier JSON enregistré : {json_path}")
     
