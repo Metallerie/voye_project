@@ -55,8 +55,11 @@ class DocumentProcessor:
         if not os.path.exists(self.filestore_dir):
             os.makedirs(self.filestore_dir)
         
+        partner_name = data.get("fournisseur", "unknown").replace(" ", "_").replace("/", "_")
+        document_number = data.get("num_facture", "0000").replace("/", "_")
         timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
-        json_filename = f"extracted_data_{timestamp}.json"
+        
+        json_filename = f"{partner_name}_{document_number}_{timestamp}.json"
         json_path = os.path.join(self.filestore_dir, json_filename)
         
         with open(json_path, "w", encoding="utf-8") as json_file:
