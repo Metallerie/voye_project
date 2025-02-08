@@ -6,108 +6,121 @@ import sys
 import time
 import re
 import asyncio
+from motor.motor_asyncio import AsyncIOMotorClient
+from pdf2image import convert_from_path, PDFPageCountError
+
+# Connexion MongoDB
+MONGO_URI = "mongodb://localhost:27017"
+DB_NAME = "voye_db"
+PARTNER_COLLECTION = "partners_library"
+DOCUMENT_COLLECTION = "document_index"
+
+client = AsyncIOMotorClient(MONGO_URI)
+db = client[DB_NAME]
+partners_collection = db[PARTNER_COLLECTION]
+documents_collection = db[DOCUMENT_COLLECTION]
 
 class DocumentProcessor:
-
-    def __init__(self, document_path, library_path, processed_dir, filestore_dir):
-        self.document_path = document_path
-        self.library_path = library_path
+    def __init__(self, document_dir, processed_dir, filestore_dir):
+        self.document_dir = document_dir
         self.processed_dir = processed_dir
         self.filestore_dir = filestore_dir
-        self.library = self.load_library()
-        self.extraction_method = self.determine_extraction_method()
-        self.api_key = self.library.get("extraction", {}).get("api_key", None)
-        self.processor = self.load_processor()
-    
-    def load_library(self):
-        if os.path.exists(self.library_path):
-            with open(self.library_path, "r", encoding="utf-8") as file:
-                return json.load(file)
-        return {}
-    
-    def determine_extraction_method(self):
-        if self.library:
-            return "OCR"  # Si une bibliothèque de référence existe, utiliser OCR
-        return "Mindee"  # Sinon, utiliser Mindee
-    
-    def load_processor(self):
-        module_name = f"{self.extraction_method.lower()}_processor"
-        module_path = f"{module_name}"
-        sys.path.append("/data/voye/app/")  # Ajout du chemin des modules dynamiques
+
+    async def process_all_documents(self):
+        files = [f for f in os.listdir(self.document_dir) if f.endswith(".pdf")]
+        for file in files:
+            document_path = os.path.join(self.document_dir, file)
+            if not os.path.exists(document_path):
+                print(f"⚠️ Fichier introuvable : {document_path}")
+                continue
+            await self.process_document(document_path)
+
+    async def process_document(self, document_path):
+        print(f"🔍 Traitement du document : {document_path}")
+        extracted_data = await self.extract_data(document_path)
+        if not extracted_data:
+            print("⚠️ Échec de l'extraction des données.")
+            return
+        
+        partner_name = self.extract_partner_name(extracted_data).replace(" ", "_").replace("/", "_")
+        document_type = self.detect_document_type(extracted_data)
+        
+        # Vérifier si une bibliothèque existe pour ce partenaire
+        library_path = f"/data/voye/filestore/partner/library/{partner_name}_{document_type}_library.json"
+        if not os.path.exists(library_path):
+            print(f"📂 Bibliothèque introuvable pour {partner_name}, création avec Mindee...")
+            await self.create_library_with_mindee(document_path, library_path)
+        
+        # Stocker l'index du document dans MongoDB
+        await self.index_document_in_db(document_path, partner_name, document_type)
+        
+        self.move_processed_file(document_path)
+
+    async def extract_data(self, document_path):
+        from mindee_processor import Processor
         try:
-            module = importlib.import_module(module_path)
-            return module.Processor(self.document_path)
-        except ImportError:
-            raise ValueError(f"Module {module_path} non trouvé")
-    
+            with open(document_path, "rb") as file:
+                processor = Processor(file.read())
+                return await processor.extract_data()
+        except PDFPageCountError:
+            print(f"⚠️ Erreur : Impossible d'extraire les pages du fichier PDF {document_path}.")
+            await self.log_error(document_path, "PDFPageCountError", "Erreur lors de la lecture du PDF")
+            return None
+        except Exception as e:
+            print(f"⚠️ Erreur inattendue : {e}")
+            await self.log_error(document_path, "ExtractionError", str(e))
+            return None
+
+    async def log_error(self, document_path, error_type, error_message):
+        error_entry = {
+            "filename": os.path.basename(document_path),
+            "error_type": error_type,
+            "error_message": error_message,
+            "timestamp": int(time.time())
+        }
+        await documents_collection.insert_one(error_entry)
+        print(f"⚠️ Erreur enregistrée dans MongoDB : {error_entry}")
+
     def extract_partner_name(self, data):
-        """ Extrait le nom du fournisseur de plusieurs sources possibles. """
         if "fournisseur" in data and data["fournisseur"]:
             return data["fournisseur"].strip()
-        elif "champs" in data and "fournisseur" in data["champs"] and data["champs"]["fournisseur"]:
-            return data["champs"]["fournisseur"].strip()
-        elif "text" in data:
-            match = re.search(r'Comptoir Commercial du Languedoc', data["text"], re.IGNORECASE)
-            if match:
-                return "CCL"
         return "unknown"
     
-    def extract_document_number(self, data):
-        """ Extrait le numéro de document en vérifiant plusieurs sources. """
-        if "num_facture" in data and data["num_facture"]:
-            return data["num_facture"].strip()
-        elif "champs" in data and "num_facture" in data["champs"] and data["champs"]["num_facture"]:
-            return data["champs"]["num_facture"].strip()
-        
-        # Recherche via regex dans le texte brut
-        if "text" in data:
-            match = re.search(r'FACTURE\s*N°[:\s]+(\d+)', data["text"], re.IGNORECASE)
-            if match:
-                return match.group(1)
-        return "0000"
+    def detect_document_type(self, data):
+        if "ticket" in data.get("text", "").lower():
+            return "ticket"
+        return "facture"
     
-    async def process(self):
-        extracted_data = self.processor.extract_data()
-        if asyncio.iscoroutine(extracted_data):
-            extracted_data = await extracted_data
-        print("Données extraites :", json.dumps(extracted_data, indent=4, ensure_ascii=False))
-        
-        # Extraction des infos
-        partner_name = self.extract_partner_name(extracted_data).replace(" ", "_").replace("/", "_")
-        document_number = self.extract_document_number(extracted_data).replace("/", "_")
-        
-        # Stocker toutes les données extraites dans le fichier JSON
-        self.store_json_data(extracted_data, partner_name, document_number)
-        self.move_processed_file()
-        return extracted_data
+    async def create_library_with_mindee(self, document_path, library_path):
+        extracted_data = await self.extract_data(document_path)
+        if extracted_data:
+            with open(library_path, "w", encoding="utf-8") as file:
+                json.dump(extracted_data, file, ensure_ascii=False, indent=4)
+            print(f"✅ Bibliothèque créée : {library_path}")
     
-    def store_json_data(self, data, partner_name, document_number):
-        if not os.path.exists(self.filestore_dir):
-            os.makedirs(self.filestore_dir)
-        
-        timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
-        json_filename = f"{partner_name}_{document_number}_{timestamp}.json"
-        json_path = os.path.join(self.filestore_dir, json_filename)
-        
-        with open(json_path, "w", encoding="utf-8") as json_file:
-            json.dump(data, json_file, ensure_ascii=False, indent=4)
-        
-        print(f"Fichier JSON enregistré : {json_path}")
+    async def index_document_in_db(self, document_path, partner_name, document_type):
+        document_entry = {
+            "filename": os.path.basename(document_path),
+            "partner": partner_name,
+            "document_type": document_type,
+            "timestamp": int(time.time())
+        }
+        await documents_collection.insert_one(document_entry)
+        print(f"✅ Document indexé dans MongoDB : {document_entry}")
     
-    def move_processed_file(self):
+    def move_processed_file(self, document_path):
         if not os.path.exists(self.processed_dir):
             os.makedirs(self.processed_dir)
-        dest_path = os.path.join(self.processed_dir, os.path.basename(self.document_path))
-        shutil.move(self.document_path, dest_path)
-        print(f"Fichier déplacé vers {dest_path}")
+        dest_path = os.path.join(self.processed_dir, os.path.basename(document_path))
+        shutil.move(document_path, dest_path)
+        print(f"✅ Fichier déplacé vers {dest_path}")
     
 # Exemple d'utilisation
 if __name__ == "__main__":
-    print("🚀 Démarrage du traitement du document...")
+    print("🚀 Démarrage du traitement des documents...")
     processor = DocumentProcessor(
-        "/data/voye/document/Facture_CCL_130616.pdf", 
-        "/data/voye/filestore/partner/library/CCL_supplier_library.json", 
+        "/data/voye/document/",
         "/data/voye/processed/",
         "/data/voye/filestore/account/factures/2025/"
     )
-    asyncio.run(processor.process())
+    asyncio.run(processor.process_all_documents())
