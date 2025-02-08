@@ -7,7 +7,7 @@ import time
 import re
 import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
-from pdf2image import convert_from_path, PDFPageCountError
+from pdf2image import convert_from_path, pdfinfo_from_path
 
 # Connexion MongoDB
 MONGO_URI = "mongodb://localhost:27017"
@@ -62,10 +62,6 @@ class DocumentProcessor:
             with open(document_path, "rb") as file:
                 processor = Processor(file.read())
                 return await processor.extract_data()
-        except PDFPageCountError:
-            print(f"⚠️ Erreur : Impossible d'extraire les pages du fichier PDF {document_path}.")
-            await self.log_error(document_path, "PDFPageCountError", "Erreur lors de la lecture du PDF")
-            return None
         except Exception as e:
             print(f"⚠️ Erreur inattendue : {e}")
             await self.log_error(document_path, "ExtractionError", str(e))
@@ -114,6 +110,10 @@ class DocumentProcessor:
         dest_path = os.path.join(self.processed_dir, os.path.basename(document_path))
         shutil.move(document_path, dest_path)
         print(f"✅ Fichier déplacé vers {dest_path}")
+    
+# Exemple d'utilisation
+if __name__ == "__main__":
+    print("🚀 Démarrage du traitement des documents...")
     
 # Exemple d'utilisation
 if __name__ == "__main__":
