@@ -1,3 +1,20 @@
+import json
+import importlib
+import os
+import shutil
+import sys
+import time
+import re
+
+class DocumentProcessor:
+
+    def __init__(self, document_path, library_path, processed_dir, filestore_dir):
+        self.document_path = document_path
+        self.library_path = library_path
+        self.processed_dir = processed_dir
+        self.filestore_dir = filestore_dir
+        self.library = self.load_library()
+        self.extraction_method = self.determine_extraction_method()
         self.api_key = self.library.get("extraction", {}).get("api_key", None)
         self.processor = self.load_processor()
     
