@@ -38,35 +38,36 @@ class Processor:
         else:
             raise ValueError("URL Mindee introuvable dans MongoDB")
 
-    async def extract_data(self):
-        """
-        Envoie un document à Mindee et récupère les données extraites.
-        """
-        await self.load_config()  # Charge les paramètres API depuis MongoDB
-        
-        headers = {"Authorization": f"Token {self.api_key}"}
-        
-        try:
-            with open(self.document_path, "rb") as file:
-                files = {"document": file}
-                response = requests.post(self.api_url, headers=headers, files=files)
+async def extract_data(self):
+    """
+    Envoie un document à Mindee et récupère les données extraites.
+    """
+    await self.load_config()  # Charge les paramètres API depuis MongoDB
 
-            response.raise_for_status()  # Vérifie si la requête a réussi
-            data = response.json()
+    headers = {"Authorization": f"Token {self.api_key}"}
 
-            if "champs" not in data:
-                raise ValueError("Réponse Mindee inattendue")
+    try:
+        files = {"document": ("facture.pdf", self.file_content, "application/pdf")}
+        response = requests.post(self.api_url, headers=headers, files=files)
 
-            return self.format_extracted_data(data)
+        response.raise_for_status()  # Vérifie si la requête a réussi
+        data = response.json()
 
-        except requests.exceptions.RequestException as e:
-            print(f"Erreur API : {e}")
-        except ValueError as ve:
-            print(f"Erreur format de réponse : {ve}")
-        except Exception as e:
-            print(f"Erreur inattendue : {e}")
+        # 🔴 DEBUG : Afficher la réponse complète de Mindee
+        print("🔍 Réponse brute de Mindee :")
+        print(json.dumps(data, indent=4, ensure_ascii=False))
 
-        return None  # Retourne None en cas d'échec
+        if "champs" not in data:
+            raise ValueError("Réponse Mindee inattendue")
+
+        return self.format_extracted_data(data)
+
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Erreur API : {e}"}
+    except ValueError as ve:
+        return {"error": f"Erreur format de réponse : {ve}"}
+    except Exception as e:
+        return {"error": f"Erreur inattendue : {e}"}
 
     def format_extracted_data(self, raw_data):
         """
