@@ -42,18 +42,22 @@ class DocumentProcessor:
     
     def extract_partner_name(self, data):
         """ Extrait le nom du fournisseur de plusieurs sources possibles. """
-        if "fournisseur" in data:
-            return data["fournisseur"]
-        elif "champs" in data and "fournisseur" in data["champs"]:
-            return data["champs"]["fournisseur"]
+        if "fournisseur" in data and data["fournisseur"]:
+            return data["fournisseur"].strip()
+        elif "champs" in data and "fournisseur" in data["champs"] and data["champs"]["fournisseur"]:
+            return data["champs"]["fournisseur"].strip()
+        elif "text" in data:
+            match = re.search(r'Comptoir Commercial du Languedoc', data["text"], re.IGNORECASE)
+            if match:
+                return "CCL"
         return "unknown"
     
     def extract_document_number(self, data):
         """ Extrait le numéro de document en vérifiant plusieurs sources. """
-        if "num_facture" in data:
-            return data["num_facture"]
-        elif "champs" in data and "num_facture" in data["champs"]:
-            return data["champs"]["num_facture"]
+        if "num_facture" in data and data["num_facture"]:
+            return data["num_facture"].strip()
+        elif "champs" in data and "num_facture" in data["champs"] and data["champs"]["num_facture"]:
+            return data["champs"]["num_facture"].strip()
         
         # Recherche via regex dans le texte brut
         if "text" in data:
