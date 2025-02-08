@@ -60,6 +60,15 @@ class DocumentProcessor:
 
     async def process_all_documents(self):
         files = [f for f in os.listdir(self.document_dir) if f.endswith(".pdf")]
+        
+        if not files:
+            print("⚠️ Aucun fichier PDF trouvé dans le dossier de traitement.")
+            return
+        
+        print(f"📂 {len(files)} fichier(s) trouvé(s) dans {self.document_dir} :")
+        for file in files:
+            print(f"   - {file}")
+        
         for file in files:
             document_path = os.path.join(self.document_dir, file)
             if not os.path.exists(document_path):
@@ -71,7 +80,7 @@ class DocumentProcessor:
         print(f"🔍 Traitement du document : {document_path}")
         extracted_data = await self.extract_data(document_path)
         if not extracted_data:
-            print("⚠️ Échec de l'extraction des données.")
+            print(f"❌ Échec de l'extraction des données pour {document_path}")
             return
         
         partner_name = extracted_data.get("fournisseur", "unknown")
@@ -87,9 +96,10 @@ class DocumentProcessor:
         try:
             with open(document_path, "rb") as file:
                 processor = Processor(file.read())
+                print("🔄 Envoi à Mindee pour extraction...")
                 return await processor.extract_data()
         except Exception as e:
-            print(f"⚠️ Erreur inattendue : {e}")
+            print(f"⚠️ Erreur inattendue lors de l'extraction des données : {e}")
             return None
     
     async def index_document_in_db(self, document_path, partner_name, document_type):
@@ -116,3 +126,4 @@ if __name__ == "__main__":
         "/data/voye/document/",
         "/data/voye/processed/"
     )
+    asyncio.run(processor.process_all_documents())
