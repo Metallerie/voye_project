@@ -1,20 +1,3 @@
-import json
-import importlib
-import os
-import shutil
-import sys
-import time
-import re
-
-class DocumentProcessor:
-
-    def __init__(self, document_path, library_path, processed_dir, filestore_dir):
-        self.document_path = document_path
-        self.library_path = library_path
-        self.processed_dir = processed_dir
-        self.filestore_dir = filestore_dir
-        self.library = self.load_library()
-        self.extraction_method = self.determine_extraction_method()
         self.api_key = self.library.get("extraction", {}).get("api_key", None)
         self.processor = self.load_processor()
     
@@ -49,18 +32,22 @@ class DocumentProcessor:
     
     def extract_total_amount(self, text):
         match = re.search(r'NET A PAYER\s+(\d+[,.]\d+)', text, re.IGNORECASE)
-        return match.group(1) if match else "0.00"
+        return match.group(1).replace(',', '.') if match else "0.00"
     
     def extract_articles(self, text):
         articles = []
-        matches = re.findall(r'(\d{5,})\s+([A-Z0-9\s]+)\s+(\d+[,.]\d+)\s+\S+\s+(\d+[,.]\d+)\s+(\d+[,.]\d+)', text)
+        matches = re.findall(r'(\d{5,})\s+([A-Z0-9\s]+?)\s+(\d+[,.]\d+)\s+\S+\s+(\d+[,.]\d+)\s+(\d+[,.]\d+)', text)
+        if not matches:
+            print("⚠️ Aucun article détecté. Vérifier le format de la facture.")
+            return []
+        
         for match in matches:
             articles.append({
                 "reference": match[0],
                 "designation": match[1].strip(),
                 "quantite": float(match[2].replace(',', '.')),
                 "prix_unitaire": float(match[3].replace(',', '.')),
-                "montant": float(match[4].replace(',', '.'))
+                "montant": float(match[4].replace(',', '.') )
             })
         return articles
     
