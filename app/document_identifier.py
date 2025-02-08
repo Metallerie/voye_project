@@ -92,10 +92,15 @@ class DocumentIdentifier:
         os.rename(document_path, dest_path)
         print(f"✅ Fichier déplacé vers {dest_path}")
 
-# Exécution principale
 if __name__ == "__main__":
     print("🚀 Démarrage de l'identification des documents...")
     identifier = DocumentIdentifier("/data/voye/document/", "/data/voye/processed/")
-    asyncio.run(identifier.load_config())
-    asyncio.run(identifier.identify_and_process_documents())
+    
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    loop.run_until_complete(identifier.identify_and_process_documents())
 
