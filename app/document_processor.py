@@ -40,25 +40,48 @@ class DocumentProcessor:
         except ImportError:
             raise ValueError(f"Module {module_path} non trouvé")
     
+    def extract_partner_name(self, data):
+        """ Extrait le nom du fournisseur de plusieurs sources possibles. """
+        if "fournisseur" in data:
+            return data["fournisseur"]
+        elif "champs" in data and "fournisseur" in data["champs"]:
+            return data["champs"]["fournisseur"]
+        return "unknown"
+    
+    def extract_document_number(self, data):
+        """ Extrait le numéro de document en vérifiant plusieurs sources. """
+        if "num_facture" in data:
+            return data["num_facture"]
+        elif "champs" in data and "num_facture" in data["champs"]:
+            return data["champs"]["num_facture"]
+        
+        # Recherche via regex dans le texte brut
+        if "text" in data:
+            match = re.search(r'FACTURE\s*N°[:\s]+(\d+)', data["text"], re.IGNORECASE)
+            if match:
+                return match.group(1)
+        return "0000"
+    
     async def process(self):
         extracted_data = self.processor.extract_data()
         if asyncio.iscoroutine(extracted_data):
             extracted_data = await extracted_data
         print("Données extraites :", json.dumps(extracted_data, indent=4, ensure_ascii=False))
         
+        # Extraction des infos
+        partner_name = self.extract_partner_name(extracted_data).replace(" ", "_").replace("/", "_")
+        document_number = self.extract_document_number(extracted_data).replace("/", "_")
+        
         # Stocker toutes les données extraites dans le fichier JSON
-        self.store_json_data(extracted_data)
+        self.store_json_data(extracted_data, partner_name, document_number)
         self.move_processed_file()
         return extracted_data
     
-    def store_json_data(self, data):
+    def store_json_data(self, data, partner_name, document_number):
         if not os.path.exists(self.filestore_dir):
             os.makedirs(self.filestore_dir)
         
-        partner_name = data.get("fournisseur", "unknown").replace(" ", "_").replace("/", "_")
-        document_number = data.get("num_facture", "0000").replace("/", "_")
         timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
-        
         json_filename = f"{partner_name}_{document_number}_{timestamp}.json"
         json_path = os.path.join(self.filestore_dir, json_filename)
         
