@@ -1,117 +1,102 @@
-import requests
 import json
+import importlib
+import os
+import shutil
+import sys
+import time
+import re
 import asyncio
-from fastapi import FastAPI, UploadFile, File
 from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
 
 # Connexion MongoDB
 MONGO_URI = "mongodb://localhost:27017"
 DB_NAME = "voye_db"
-COLLECTION_NAME = "voye_config"
+PARTNER_COLLECTION = "partners_library"
+DOCUMENT_COLLECTION = "document_index"
 
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
-config_collection = db[COLLECTION_NAME]
+partners_collection = db[PARTNER_COLLECTION]
+documents_collection = db[DOCUMENT_COLLECTION]
 
-app = FastAPI()
+class DocumentProcessor:
+    def __init__(self, document_dir, processed_dir, filestore_dir):
+        self.document_dir = document_dir
+        self.processed_dir = processed_dir
+        self.filestore_dir = filestore_dir
 
-class Processor:
-    def __init__(self, file_content):
-        """
-        Initialise le processeur avec le contenu du fichier.
-        """
-        self.file_content = file_content
-        self.api_key = None
-        self.api_url = None
+    async def process_all_documents(self):
+        files = [f for f in os.listdir(self.document_dir) if f.endswith(".pdf")]
+        for file in files:
+            document_path = os.path.join(self.document_dir, file)
+            await self.process_document(document_path)
 
-    async def load_config(self):
-        """
-        Charge l'URL et la clé API Mindee depuis MongoDB.
-        """
-        mindee_api_key = await config_collection.find_one({"key": "mindee_api_key"})
-        mindee_api_url = await config_collection.find_one({"key": "mindee_api_url"})
+    async def process_document(self, document_path):
+        print(f"🔍 Traitement du document : {document_path}")
+        extracted_data = await self.extract_data(document_path)
+        if not extracted_data:
+            print("⚠️ Échec de l'extraction des données.")
+            return
+        
+        partner_name = self.extract_partner_name(extracted_data).replace(" ", "_").replace("/", "_")
+        document_type = self.detect_document_type(extracted_data)
+        
+        # Vérifier si une bibliothèque existe pour ce partenaire
+        library_path = f"/data/voye/filestore/partner/library/{partner_name}_{document_type}_library.json"
+        if not os.path.exists(library_path):
+            print(f"📂 Bibliothèque introuvable pour {partner_name}, création avec Mindee...")
+            await self.create_library_with_mindee(document_path, library_path)
+        
+        # Stocker l'index du document dans MongoDB
+        await self.index_document_in_db(document_path, partner_name, document_type)
+        
+        self.move_processed_file(document_path)
 
-        if mindee_api_key:
-            self.api_key = mindee_api_key["value"]
-        else:
-            raise ValueError("Clé API Mindee introuvable dans MongoDB")
+    async def extract_data(self, document_path):
+        from mindee_processor import Processor
+        with open(document_path, "rb") as file:
+            processor = Processor(file.read())
+            return await processor.extract_data()
 
-        if mindee_api_url:
-            self.api_url = mindee_api_url["value"]
-        else:
-            raise ValueError("URL Mindee introuvable dans MongoDB")
-
-    async def extract_data(self):
-        """
-        Envoie un document à Mindee et récupère les données extraites.
-        """
-        await self.load_config()  # Charge les paramètres API depuis MongoDB
-
-        headers = {"Authorization": f"Token {self.api_key}"}
-
-        try:
-            files = {"document": ("facture.pdf", self.file_content, "application/pdf")}
-            response = requests.post(self.api_url, headers=headers, files=files)
-
-            response.raise_for_status()  # Vérifie si la requête a réussi
-            data = response.json()
-            # 🔴 DEBUG : Afficher la réponse complète de Mindee
-            print("🔍 Réponse brute de Mindee :")
-            print(json.dumps(data, indent=4, ensure_ascii=False))
-
-
-            if "champs" not in data:
-                raise ValueError("Réponse Mindee inattendue")
-
-            return self.format_extracted_data(data)
-
-        except requests.exceptions.RequestException as e:
-            return {"error": f"Erreur API : {e}"}
-        except ValueError as ve:
-            return {"error": f"Erreur format de réponse : {ve}"}
-        except Exception as e:
-            return {"error": f"Erreur inattendue : {e}"}
-
-    def format_extracted_data(self, raw_data):
-        """
-        Formate les données extraites pour une meilleure lisibilité.
-        """
-        formatted_data = {
-            "fournisseur": raw_data.get("fournisseur", "Inconnu"),
-            "version_format": raw_data.get("version_format", "1.0"),
-            "champs": {}
+    def extract_partner_name(self, data):
+        if "fournisseur" in data and data["fournisseur"]:
+            return data["fournisseur"].strip()
+        return "unknown"
+    
+    def detect_document_type(self, data):
+        if "ticket" in data.get("text", "").lower():
+            return "ticket"
+        return "facture"
+    
+    async def create_library_with_mindee(self, document_path, library_path):
+        extracted_data = await self.extract_data(document_path)
+        with open(library_path, "w", encoding="utf-8") as file:
+            json.dump(extracted_data, file, ensure_ascii=False, indent=4)
+        print(f"✅ Bibliothèque créée : {library_path}")
+    
+    async def index_document_in_db(self, document_path, partner_name, document_type):
+        document_entry = {
+            "filename": os.path.basename(document_path),
+            "partner": partner_name,
+            "document_type": document_type,
+            "timestamp": int(time.time())
         }
-
-        # Extraction des champs
-        champs = raw_data.get("champs", {})
-
-        for key, value in champs.items():
-            if isinstance(value, dict) and "polygon" in value:
-                formatted_data["champs"][key] = {
-                    "valeur": "Non défini",
-                    "position": value["polygon"]
-                }
-            elif isinstance(value, list):
-                formatted_data["champs"][key] = [
-                    {"valeur": "Non défini", "position": item.get("polygon", [])}
-                    for item in value
-                ]
-            else:
-                formatted_data["champs"][key] = value
-
-        return formatted_data
-
-
-# --- Endpoint FastAPI pour traiter un fichier ---
-@app.post("/extract/")
-async def extract_invoice(file: UploadFile = File(...)):
-    """
-    Endpoint pour extraire les données d'une facture.
-    """
-    file_content = await file.read()  # Lire le fichier envoyé
-    processor = Processor(file_content)
+        await documents_collection.insert_one(document_entry)
+        print(f"✅ Document indexé dans MongoDB : {document_entry}")
     
-    result = await processor.extract_data()
+    def move_processed_file(self, document_path):
+        if not os.path.exists(self.processed_dir):
+            os.makedirs(self.processed_dir)
+        dest_path = os.path.join(self.processed_dir, os.path.basename(document_path))
+        shutil.move(document_path, dest_path)
+        print(f"✅ Fichier déplacé vers {dest_path}")
     
-    return result
+# Exemple d'utilisation
+if __name__ == "__main__":
+    print("🚀 Démarrage du traitement des documents...")
+    processor = DocumentProcessor(
+        "/data/voye/document/",
+        "/data/voye/processed/",
+        "/data/voye/filestore/account/factures/2025/"
+    )
+    asyncio.run(processor.process_all_documents())
