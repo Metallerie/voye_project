@@ -18,10 +18,16 @@ config_collection = db[CONFIG_COLLECTION]
 partner_collection = db[PARTNER_COLLECTION]
 
 class DocumentIdentifier:
+
     def __init__(self, document_dir, processed_dir):
         self.document_dir = document_dir
         self.processed_dir = processed_dir
         self.document_types = {}
+    async def load_document_keywords():
+       config = await config_collection.find_one({"key": "document_keywords"})
+       if config and "value" in config:
+            return config["value"]
+       return {}
     
     async def load_config(self):
         """Charge les types de documents dynamiquement depuis MongoDB"""
