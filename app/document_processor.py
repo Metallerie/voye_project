@@ -47,23 +47,47 @@ class DocumentProcessor:
         match = re.search(r'Comptoir Commercial du Languedoc', text, re.IGNORECASE)
         return "CCL" if match else "unknown"
     
+    def extract_total_amount(self, text):
+        match = re.search(r'NET A PAYER\s+(\d+[,.]\d+)', text, re.IGNORECASE)
+        return match.group(1) if match else "0.00"
+    
+    def extract_articles(self, text):
+        articles = []
+        matches = re.findall(r'(\d{5,})\s+([A-Z0-9\s]+)\s+(\d+[,.]\d+)\s+\S+\s+(\d+[,.]\d+)\s+(\d+[,.]\d+)', text)
+        for match in matches:
+            articles.append({
+                "reference": match[0],
+                "designation": match[1].strip(),
+                "quantite": float(match[2].replace(',', '.')),
+                "prix_unitaire": float(match[3].replace(',', '.')),
+                "montant": float(match[4].replace(',', '.'))
+            })
+        return articles
+    
     def process(self):
         extracted_data = self.processor.extract_data()
         print("Données extraites :", extracted_data)
         
         extracted_text = extracted_data.get("text", "")
-        partner_name = self.extract_vendor_name(extracted_text).replace(" ", "_").replace("/", "_")
-        invoice_number = self.extract_invoice_number(extracted_text).replace("/", "_")
+        structured_data = {
+            "vendeur": self.extract_vendor_name(extracted_text),
+            "num_facture": self.extract_invoice_number(extracted_text),
+            "total_net_a_payer": self.extract_total_amount(extracted_text),
+            "articles": self.extract_articles(extracted_text)
+        }
         
-        self.store_json_data(extracted_data, partner_name, invoice_number)
+        self.store_json_data(structured_data)
         self.move_processed_file()
-        return extracted_data
+        return structured_data
     
-    def store_json_data(self, data, partner_name, invoice_number):
+    def store_json_data(self, data):
         if not os.path.exists(self.filestore_dir):
             os.makedirs(self.filestore_dir)
         
+        partner_name = data.get("vendeur", "unknown").replace(" ", "_").replace("/", "_")
+        invoice_number = data.get("num_facture", "0000").replace("/", "_")
         timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
+        
         json_filename = f"{partner_name}_{invoice_number}_{timestamp}.json"
         json_path = os.path.join(self.filestore_dir, json_filename)
         
