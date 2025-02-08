@@ -1,7 +1,7 @@
-import os
-import json
-import time
 import asyncio
+import os
+import time
+import re
 from motor.motor_asyncio import AsyncIOMotorClient
 
 # Connexion MongoDB
@@ -9,39 +9,37 @@ MONGO_URI = "mongodb://localhost:27017"
 DB_NAME = "voye_db"
 DOCUMENT_COLLECTION = "document_index"
 CONFIG_COLLECTION = "voye_config"
-PARTNER_COLLECTION = "partners_library"
 
 client = AsyncIOMotorClient(MONGO_URI)
 db = client[DB_NAME]
-document_collection = db[DOCUMENT_COLLECTION]
+documents_collection = db[DOCUMENT_COLLECTION]
 config_collection = db[CONFIG_COLLECTION]
-partner_collection = db[PARTNER_COLLECTION]
 
 class DocumentIdentifier:
-
     def __init__(self, document_dir, processed_dir):
         self.document_dir = document_dir
         self.processed_dir = processed_dir
-        self.document_types = {}
-    async def load_document_keywords():
-       config = await config_collection.find_one({"key": "document_keywords"})
-       if config and "value" in config:
-            return config["value"]
-       return {}
-    
+        self.document_keywords = {}
+
     async def load_config(self):
-        """Charge les types de documents dynamiquement depuis MongoDB"""
-        config = await config_collection.find_one({"key": "document_types"})
-        if config:
-            self.document_types = config["value"]
+        """
+        Charge les mots-clés de type de document depuis MongoDB.
+        """
+        config = await config_collection.find_one({"key": "document_keywords"})
+        if config and "value" in config:
+            self.document_keywords = config["value"]
         else:
-            raise ValueError("⚠️ Aucun type de document trouvé dans voye_config.")
-    
+            print("⚠️ Aucun mot-clé trouvé pour identifier les documents !")
+
     async def identify_and_process_documents(self):
-        """Analyse tous les documents du dossier et les traite."""
+        """
+        Identifie et traite tous les documents présents dans le dossier.
+        """
+        await self.load_config()  # Charger la config des mots-clés
+
         files = [f for f in os.listdir(self.document_dir) if f.endswith(".pdf")]
         if not files:
-            print("⚠️ Aucun fichier PDF trouvé.")
+            print("⚠️ Aucun fichier PDF trouvé dans le dossier.")
             return
 
         print(f"📂 {len(files)} fichier(s) détecté(s) :")
@@ -50,63 +48,96 @@ class DocumentIdentifier:
             await self.process_document(file)
 
     async def process_document(self, filename):
-        """Identifie le type et le partenaire avant d'appeler le bon script."""
+        """
+        Traite un document : identification du type et enregistrement.
+        """
         document_path = os.path.join(self.document_dir, filename)
-        document_type = await self.detect_document_type(filename)
-        partner = await self.identify_partner(filename)
 
+        # Charger le texte brut pour analyse
+        extracted_text = await self.extract_text_from_pdf(document_path)
+        doc_type = await self.identify_document_type(filename, extracted_text)
+
+        # Stocker l'index du document
         document_entry = {
             "filename": filename,
-            "partner": partner,
-            "document_type": document_type,
+            "document_type": doc_type,
             "timestamp": int(time.time())
         }
-        await document_collection.insert_one(document_entry)
+        await documents_collection.insert_one(document_entry)
         print(f"✅ Document indexé : {document_entry}")
 
-        await self.call_document_processor(document_type, document_path)
+        # Déplacer le fichier après traitement
         self.move_processed_file(document_path)
-    
-    async def detect_document_type(self, filename):
-        """Détermine le type de document basé sur son nom et son contenu."""
-        if "facture" in filename.lower():
+
+    async def extract_text_from_pdf(self, document_path):
+        """
+        Extrait le texte d'un PDF avec une méthode OCR basique.
+        """
+        from pdf2image import convert_from_path
+        import pytesseract
+
+        text = ""
+        try:
+            images = convert_from_path(document_path)
+            for img in images:
+                text += pytesseract.image_to_string(img) + "\n"
+        except Exception as e:
+            print(f"❌ Erreur lors de l'extraction du texte : {e}")
+        
+        return text.strip()
+
+    async def identify_document_type(self, filename, extracted_text):
+        """
+        Identifie le type de document en utilisant :
+        1. Le nom de fichier (si possible).
+        2. L'analyse du texte extrait.
+        """
+        doc_type = self.identify_type_from_filename(filename)
+        if doc_type == "autre":
+            doc_type = await self.identify_type_from_text(extracted_text)
+        return doc_type
+
+    def identify_type_from_filename(self, filename):
+        """
+        Détection rapide par nom de fichier.
+        """
+        filename = filename.lower()
+        if re.search(r'\bfacture\b|\binvoice\b', filename):
             return "facture"
-        elif "rib" in filename.lower():
+        elif re.search(r'\brib\b', filename):
             return "rib"
-        elif "kbis" in filename.lower():
+        elif re.search(r'\bkbis\b', filename):
             return "kbis"
         return "autre"
 
-    async def identify_partner(self, filename):
-        """Identifie l'émetteur du document (fournisseur, client)."""
-        partner = await partner_collection.find_one({"filename": filename})
-        if partner:
-            return partner["name"]
-        return "unknown"
-    
-    async def call_document_processor(self, document_type, document_path):
-        """Appelle dynamiquement le bon script de traitement."""
-        script_name = self.document_types.get(document_type, "default_processor.py")
-        print(f"🔄 Lancement de {script_name} pour {document_path}...")
-        os.system(f"python3 {script_name} {document_path}")
-    
+    async def identify_type_from_text(self, text):
+        """
+        Identification du type en analysant le texte extrait avec les mots-clés de `voye_config`.
+        """
+        for doc_type, words in self.document_keywords.items():
+            if any(word.lower() in text.lower() for word in words):
+                return doc_type
+        return "autre"
+
     def move_processed_file(self, document_path):
-        """Déplace le fichier après traitement."""
+        """
+        Déplace le fichier traité vers le dossier des documents archivés.
+        """
         if not os.path.exists(self.processed_dir):
             os.makedirs(self.processed_dir)
         dest_path = os.path.join(self.processed_dir, os.path.basename(document_path))
         os.rename(document_path, dest_path)
         print(f"✅ Fichier déplacé vers {dest_path}")
 
+# Lancement du script
 if __name__ == "__main__":
     print("🚀 Démarrage de l'identification des documents...")
     identifier = DocumentIdentifier("/data/voye/document/", "/data/voye/processed/")
-    
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-    
-    loop.run_until_complete(identifier.identify_and_process_documents())
 
+    loop.run_until_complete(identifier.identify_and_process_documents())
