@@ -78,6 +78,7 @@ if __name__ == "__main__":
         dest_path = os.path.join(self.processed_dir, os.path.basename(self.document_path))
         shutil.move(self.document_path, dest_path)
         print(f"Fichier déplacé vers {dest_path}")
+    )
     
 # Exemple d'utilisation
 if __name__ == "__main__":
