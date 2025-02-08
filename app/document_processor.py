@@ -75,17 +75,6 @@ if __name__ == "__main__":
     processor = DocumentProcessor(
         "/data/voye/document/Facture_CCL_130616.pdf", 
         "/data/voye/filestore/partner/library/CCL_supplier_library.json", 
-        dest_path = os.path.join(self.processed_dir, os.path.basename(self.document_path))
-        shutil.move(self.document_path, dest_path)
-        print(f"Fichier déplacé vers {dest_path}")
-    )
-    
-# Exemple d'utilisation
-if __name__ == "__main__":
-    print("🚀 Démarrage du traitement du document...")
-    processor = DocumentProcessor(
-        "/data/voye/document/Facture_CCL_130616.pdf", 
-        "/data/voye/filestore/partner/library/CCL_supplier_library.json", 
         "/data/voye/processed/",
         "/data/voye/filestore/account/factures/2025/"
     )
