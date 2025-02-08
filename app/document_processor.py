@@ -36,7 +36,7 @@ class DocumentProcessor:
         sys.path.append("/data/voye/app/")  # Ajout du chemin des modules dynamiques
         try:
             module = importlib.import_module(module_path)
-            return module.Processor(open(self.document_path, "rb").read())
+            return module.Processor(self.document_path)
         except ImportError:
             raise ValueError(f"Module {module_path} non trouvé")
     
