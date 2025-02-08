@@ -42,7 +42,7 @@ class DocumentProcessor:
             print("⚠️ Échec de l'extraction des données.")
             return
         
-        partner_name = self.extract_partner_name(extracted_data).replace(" ", "_").replace("/", "_")
+        partner_name = await self.extract_partner_name(extracted_data)
         document_type = self.detect_document_type(extracted_data)
         
         # Vérifier si une bibliothèque existe pour ce partenaire
@@ -67,19 +67,18 @@ class DocumentProcessor:
             await self.log_error(document_path, "ExtractionError", str(e))
             return None
 
-    async def log_error(self, document_path, error_type, error_message):
-        error_entry = {
-            "filename": os.path.basename(document_path),
-            "error_type": error_type,
-            "error_message": error_message,
-            "timestamp": int(time.time())
-        }
-        await documents_collection.insert_one(error_entry)
-        print(f"⚠️ Erreur enregistrée dans MongoDB : {error_entry}")
-
-    def extract_partner_name(self, data):
+    async def extract_partner_name(self, data):
+        # Vérifier si le fournisseur est déjà identifié dans les données extraites
         if "fournisseur" in data and data["fournisseur"]:
             return data["fournisseur"].strip()
+        
+        # Vérifier dans MongoDB si un partenaire connu est présent
+        if "text" in data:
+            all_partners = await partners_collection.find().to_list(length=1000)
+            for partner in all_partners:
+                if partner.get("name") and partner["name"] in data["text"]:
+                    return partner["name"]
+        
         return "unknown"
     
     def detect_document_type(self, data):
@@ -110,10 +109,6 @@ class DocumentProcessor:
         dest_path = os.path.join(self.processed_dir, os.path.basename(document_path))
         shutil.move(document_path, dest_path)
         print(f"✅ Fichier déplacé vers {dest_path}")
-    
-# Exemple d'utilisation
-if __name__ == "__main__":
-    print("🚀 Démarrage du traitement des documents...")
     
 # Exemple d'utilisation
 if __name__ == "__main__":
