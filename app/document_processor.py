@@ -41,7 +41,9 @@ class DocumentProcessor:
             raise ValueError(f"Module {module_path} non trouvé")
     
     async def process(self):
-        extracted_data = await self.processor.extract_data()
+        extracted_data = self.processor.extract_data()
+        if asyncio.iscoroutine(extracted_data):
+            extracted_data = await extracted_data
         print("Données extraites :", extracted_data)
         
         # Stocker toutes les données extraites dans le fichier JSON
