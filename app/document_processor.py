@@ -4,6 +4,7 @@ import os
 import shutil
 import sys
 import time
+import re
 
 class DocumentProcessor:
 
@@ -38,21 +39,31 @@ class DocumentProcessor:
         except ImportError:
             raise ValueError(f"Module {module_path} non trouvé")
     
+    def extract_invoice_number(self, text):
+        match = re.search(r'FACTURE N°[:\s]+(\d+)', text, re.IGNORECASE)
+        return match.group(1) if match else "0000"
+    
+    def extract_vendor_name(self, text):
+        match = re.search(r'Comptoir Commercial du Languedoc', text, re.IGNORECASE)
+        return "CCL" if match else "unknown"
+    
     def process(self):
         extracted_data = self.processor.extract_data()
         print("Données extraites :", extracted_data)
-        self.store_json_data(extracted_data)
+        
+        extracted_text = extracted_data.get("text", "")
+        partner_name = self.extract_vendor_name(extracted_text).replace(" ", "_").replace("/", "_")
+        invoice_number = self.extract_invoice_number(extracted_text).replace("/", "_")
+        
+        self.store_json_data(extracted_data, partner_name, invoice_number)
         self.move_processed_file()
         return extracted_data
     
-    def store_json_data(self, data):
+    def store_json_data(self, data, partner_name, invoice_number):
         if not os.path.exists(self.filestore_dir):
             os.makedirs(self.filestore_dir)
         
-        partner_name = data.get("vendeur", "unknown").replace(" ", "_").replace("/", "_")
-        invoice_number = data.get("num_facture", "0000").replace("/", "_")
         timestamp = str(int(time.time() * 1e6))  # Index temporel précis en microsecondes
-        
         json_filename = f"{partner_name}_{invoice_number}_{timestamp}.json"
         json_path = os.path.join(self.filestore_dir, json_filename)
         
