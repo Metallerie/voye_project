@@ -27,18 +27,19 @@ if not all([MINDEE_API_KEY, MINDEE_API_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTOR
     exit(1)
 
 # Fonction pour vérifier le statut d'une requête Mindee
-def get_mindee_results(job_id):
-    status_url = f"{MINDEE_API_URL}/predict/{job_id}"
+def get_mindee_results(job_id, response_data):
+    # Utilisation de l'URL fournie par Mindee si elle existe
+    status_url = response_data.get("status_url", f"{MINDEE_API_URL}/predict/{job_id}")
+    
     headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
     
     while True:
         response = requests.get(status_url, headers=headers)
-        print("🔍 Réponse complète de Mindee :", json.dumps(response_data, indent=4))
         if response.status_code != 200:
             print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
             return None
         
-        data = get_mindee_results(job_id, response_data)
+        data = response.json()
         if data.get("status") == "completed":
             return data
         
@@ -69,13 +70,11 @@ def process_invoice(file_path):
         return
     
     response_data = response.json()
-    print(f"🔍 Réponse API Mindee : {json.dumps(response_data, indent=4)}")  # Affichage complet pour debug
-    
-     
+    print("🔍 Réponse complète de Mindee :", json.dumps(response_data, indent=4))  # Debug
     
     job_id = response_data.get("document", {}).get("id")
     print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
-    data = get_mindee_results(job_id)
+    data = get_mindee_results(job_id, response_data)
     if not data:
         return
     
@@ -126,6 +125,4 @@ def process_all_invoices():
 
 # Exécution du traitement
 if __name__ == "__main__":
-    
     process_all_invoices()
-    
