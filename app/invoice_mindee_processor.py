@@ -95,5 +95,5 @@ def process_all_invoices():
             process_invoice(file_path)
 
 # Exécution du traitement
-tif __name__ == "__main__":
+if __name__ == "__main__":
     process_all_invoices()
