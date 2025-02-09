@@ -3,7 +3,7 @@ import time
 import json
 
 # Clé API Mindee (à récupérer dans voye_config ou à renseigner manuellement)
-MINDEE_API_KEY = "TA_CLE_API_MINDEE_ICI"
+MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 MINDEE_API_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
 MINDEE_STATUS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/documents/queue/{job_id}"
 
