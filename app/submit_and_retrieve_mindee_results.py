@@ -7,7 +7,7 @@ MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 
 # URL pour soumettre et récupérer les résultats
 SUBMIT_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
-RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{job_id}"
+RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/documents/{document_id}"
 
 # Chemin vers le fichier à soumettre
 FILE_PATH = "/data/voye/app/Facture_CCL_130616.pdf"
@@ -27,18 +27,18 @@ def submit_document(file_path):
     data = response.json()
     print(f"🔍 Réponse de l'API après soumission : {json.dumps(data, indent=4, ensure_ascii=False)}")
     
-    # Vérification de l'existence du Job ID dans la réponse
-    if "job" in data and "id" in data["job"]:
-        job_id = data["job"]["id"]
-        print(f"📄 Document soumis avec succès. Job ID : {job_id}")
-        return job_id
+    # Vérification de l'existence de l'identifiant de document dans la réponse
+    if "document" in data and "id" in data["document"]:
+        document_id = data["document"]["id"]
+        print(f"📄 Document soumis avec succès. Document ID : {document_id}")
+        return document_id
     else:
-        print("❌ Impossible de récupérer le Job ID.")
+        print("❌ Impossible de récupérer l'identifiant du document.")
         return None
 
-def retrieve_results(job_id):
+def retrieve_results(document_id):
     while True:
-        response = requests.get(RESULTS_URL.format(job_id=job_id), headers=headers)
+        response = requests.get(RESULTS_URL.format(document_id=document_id), headers=headers)
         
         if response.status_code != 200:
             print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
@@ -48,7 +48,7 @@ def retrieve_results(job_id):
         data = response.json()
         job_status = data.get("document", {}).get("status", "")
 
-        print(f"📊 Statut du job : {job_status}")
+        print(f"📊 Statut du document : {job_status}")
 
         if job_status == "completed":
             print("✅ Résultats récupérés avec succès !")
@@ -64,10 +64,10 @@ def save_results_to_json(data, file_path):
 
 def main():
     # Soumettre le document à Mindee
-    job_id = submit_document(FILE_PATH)
-    if job_id is not None:
+    document_id = submit_document(FILE_PATH)
+    if document_id is not None:
         # Récupérer les résultats de Mindee
-        results = retrieve_results(job_id)
+        results = retrieve_results(document_id)
         if results is not None:
             # Enregistrer les résultats dans un fichier JSON
             save_results_to_json(results, 'mindee_results.json')
