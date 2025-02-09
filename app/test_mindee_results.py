@@ -5,15 +5,16 @@ import time
 # Clé API Mindee
 MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 
-# ✅ URL corrigée pour récupérer les résultats
+# URL pour récupérer les résultats
 RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{job_id}"
 
-# 📝 Remplace par le Job ID obtenu après l'envoi du document
+# Remplacer par le Job ID obtenu après l'envoi du document
 job_id = "b6123ff8-f290-405b-b4c5-3ded2539c593"
 
-# 📤 Envoi de la requête pour récupérer les résultats
+# En-têtes de la requête
 headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
 
+# Boucle pour vérifier le statut du job et récupérer les résultats
 while True:
     response = requests.get(RESULTS_URL.format(job_id=job_id), headers=headers)
     
