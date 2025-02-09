@@ -30,7 +30,7 @@ if not all([MINDEE_API_KEY, MINDEE_API_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTOR
 def get_mindee_results(job_id, response_data):
     # Utilisation de l'URL fournie par Mindee si elle existe
   #  status_url = response_data.get("status_url", f"{MINDEE_API_URL}/{job_id}")
-    status_url = response_data.get("status_url", f"https://api.mindee.net/v1//products/mindee/invoices/v4/documents/queue/{job_id}")
+    status_url = response_data.get("status_url", f"https://api.mindee.net/v1/products/mindee/invoices/v4/documents/queue/{job_id}")
   #  https://api.mindee.net/v1/products/mindee/invoices/v4/predict
     
     headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
