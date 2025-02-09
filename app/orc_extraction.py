@@ -28,18 +28,24 @@ def extract_and_create_json(pdf_path):
 
     document = api_response.document
     partner_name = (
-        document.inference.prediction.supplier_name.value if document.inference.prediction.supplier_name else "Nom Inconnu"
+        document.inference.prediction.supplier_name.value
+        if hasattr(document.inference.prediction.supplier_name, 'value') else document.inference.prediction.supplier_name
+        if document.inference.prediction.supplier_name else "Nom Inconnu"
     )
-    partner_address = document.inference.prediction.supplier_address.value if document.inference.prediction.supplier_address else "Adresse non fournie"
+    partner_address = (
+        document.inference.prediction.supplier_address.value
+        if hasattr(document.inference.prediction.supplier_address, 'value') else document.inference.prediction.supplier_address
+        if document.inference.prediction.supplier_address else "Adresse non fournie"
+    )
 
     line_items = document.inference.prediction.line_items or []
     lines = []
 
     for item in line_items:
-        description = item.description.value if item.description else "Description non fournie"
-        unit_price = item.unit_price.value if item.unit_price else 0.0
-        quantity = item.quantity.value if item.quantity else 1
-        tax_rate = item.tax_rate.value if item.tax_rate else 0.0
+        description = item.description.value if hasattr(item.description, 'value') else item.description if item.description else "Description non fournie"
+        unit_price = item.unit_price.value if hasattr(item.unit_price, 'value') else item.unit_price if item.unit_price else 0.0
+        quantity = item.quantity.value if hasattr(item.quantity, 'value') else item.quantity if item.quantity else 1
+        tax_rate = item.tax_rate.value if hasattr(item.tax_rate, 'value') else item.tax_rate if item.tax_rate else 0.0
 
         line_data = {
             "description": description,
@@ -49,16 +55,16 @@ def extract_and_create_json(pdf_path):
         }
         lines.append(line_data)
 
-    document_total_net = document.inference.prediction.total_net.value if document.inference.prediction.total_net else 0.0
-    document_total_amount = document.inference.prediction.total_amount.value if document.inference.prediction.total_amount else 0.0
-    document_total_tax = document.inference.prediction.total_tax.value if document.inference.prediction.total_tax else 0.0
+    document_total_net = document.inference.prediction.total_net.value if hasattr(document.inference.prediction.total_net, 'value') else document.inference.prediction.total_net if document.inference.prediction.total_net else 0.0
+    document_total_amount = document.inference.prediction.total_amount.value if hasattr(document.inference.prediction.total_amount, 'value') else document.inference.prediction.total_amount if document.inference.prediction.total_amount else 0.0
+    document_total_tax = document.inference.prediction.total_tax.value if hasattr(document.inference.prediction.total_tax, 'value') else document.inference.prediction.total_tax if document.inference.prediction.total_tax else 0.0
 
     invoice_data = {
         "partner_name": partner_name,
         "partner_address": partner_address,
-        "invoice_date": document.inference.prediction.date.value if document.inference.prediction.date else None,
-        "invoice_date_due": document.inference.prediction.due_date.value if document.inference.prediction.due_date else None,
-        "invoice_number": document.inference.prediction.invoice_number.value if document.inference.prediction.invoice_number else "Référence inconnue",
+        "invoice_date": document.inference.prediction.date.value if hasattr(document.inference.prediction.date, 'value') else document.inference.prediction.date if document.inference.prediction.date else None,
+        "invoice_date_due": document.inference.prediction.due_date.value if hasattr(document.inference.prediction.due_date, 'value') else document.inference.prediction.due_date if document.inference.prediction.due_date else None,
+        "invoice_number": document.inference.prediction.invoice_number.value if hasattr(document.inference.prediction.invoice_number, 'value') else document.inference.prediction.invoice_number if document.inference.prediction.invoice_number else "Référence inconnue",
         "line_items": lines,
         "total_net": document_total_net,
         "total_tax": document_total_tax,
