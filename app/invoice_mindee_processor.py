@@ -70,11 +70,9 @@ def process_invoice(file_path):
     response_data = response.json()
     print(f"🔍 Réponse API Mindee : {json.dumps(response_data, indent=4)}")  # Affichage complet pour debug
     
-    job_id = response_data.get("document", {}).get("id")
-    if not job_id:
-        print("❌ Erreur : Impossible de récupérer l'ID du job Mindee. Vérifie le format de la réponse API.")
-        return
+     
     
+    job_id = response_data.get("document", {}).get("id")
     print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
     data = get_mindee_results(job_id)
     if not data:
