@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import datetime
+import time
 from pymongo import MongoClient
 
 # Connexion à MongoDB
@@ -25,6 +26,24 @@ if not all([MINDEE_API_KEY, MINDEE_API_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTOR
     print("❌ Erreur : Certains paramètres sont manquants dans voye_config.")
     exit(1)
 
+# Fonction pour vérifier le statut d'une requête Mindee
+def get_mindee_results(job_id):
+    status_url = f"{MINDEE_API_URL}/{job_id}"
+    headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
+    
+    while True:
+        response = requests.get(status_url, headers=headers)
+        if response.status_code != 200:
+            print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
+            return None
+        
+        data = response.json()
+        if data.get("status") == "completed":
+            return data
+        
+        print("⏳ Traitement en cours... Attente de 5 secondes.")
+        time.sleep(5)
+
 # Fonction pour traiter une facture avec Mindee
 def process_invoice(file_path):
     file_name = os.path.basename(file_path)
@@ -43,11 +62,19 @@ def process_invoice(file_path):
     print(f"📤 Envoi de {file_name} à Mindee...")
     response = requests.post(MINDEE_API_URL, headers=headers, files=files)
     
-    if response.status_code != 200:
+    if response.status_code != 201:
         print(f"❌ Erreur API Mindee : {response.status_code}")
         return
     
-    data = response.json()
+    job_id = response.json().get("job_id")
+    if not job_id:
+        print("❌ Erreur : Impossible de récupérer l'ID du job Mindee.")
+        return
+    
+    print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
+    data = get_mindee_results(job_id)
+    if not data:
+        return
     
     # Création du dossier de stockage
     output_dir = os.path.join(INVOICE_STORAGE_PATH, str(year))
