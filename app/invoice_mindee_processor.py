@@ -33,6 +33,7 @@ def get_mindee_results(job_id):
     
     while True:
         response = requests.get(status_url, headers=headers)
+        print("🔍 URL fournie par Mindee:", response_data)
         if response.status_code != 200:
             print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
             return None
@@ -125,4 +126,6 @@ def process_all_invoices():
 
 # Exécution du traitement
 if __name__ == "__main__":
+    
     process_all_invoices()
+    
