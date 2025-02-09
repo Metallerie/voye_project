@@ -2,7 +2,7 @@ import requests
 import json
 import time
 import logging
-
+from mindee import Client, product
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
