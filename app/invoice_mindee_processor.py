@@ -33,9 +33,9 @@ def get_mindee_results(job_id):
     
     while True:
         response = requests.get(status_url, headers=headers)
-#        if response.status_code != 200:
-#            print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
-#            return None
+        if response.status_code != 200:
+            print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
+            return None
         
         data = response.json()
         if data.get("status") == "completed":
