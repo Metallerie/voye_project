@@ -33,12 +33,12 @@ def get_mindee_results(job_id):
     
     while True:
         response = requests.get(status_url, headers=headers)
-        print("🔍 URL fournie par Mindee:", response_data)
+        print("🔍 Réponse complète de Mindee :", json.dumps(response_data, indent=4))
         if response.status_code != 200:
             print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
             return None
         
-        data = response.json()
+        data = get_mindee_results(job_id, response_data)
         if data.get("status") == "completed":
             return data
         
