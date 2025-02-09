@@ -17,19 +17,21 @@ def get_config(param_key):
 # Récupération des paramètres depuis voye_config
 MINDEE_API_KEY = get_config("mindee_api_key")
 MINDEE_API_URL = get_config("mindee_api_url")
+MINDEE_STATUS_URL = get_config("url_status")
 INVOICE_STORAGE_PATH = get_config("invoice_storage_path")
 INPUT_DIRECTORY = get_config("input_directory")  # /data/voye/document/
 ARCHIVE_DIRECTORY = get_config("archive_directory")  # /data/voye/archive/{année}
 
 # Vérification des paramètres essentiels
-if not all([MINDEE_API_KEY, MINDEE_API_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTORY, ARCHIVE_DIRECTORY]):
+if not all([MINDEE_API_KEY, MINDEE_API_URL, MINDEE_STATUS_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTORY, ARCHIVE_DIRECTORY]):
     print("❌ Erreur : Certains paramètres sont manquants dans voye_config.")
     exit(1)
 
 # Fonction pour vérifier le statut d'une requête Mindee
 def get_mindee_results(job_id, response_data):
     # Utilisation de l'URL correcte pour récupérer les résultats
-    status_url = f"https://api.mindee.net/v1/products/mindee/invoices/v4/documents/queue/{job_id}"
+    status_url = MINDEE_STATUS_URL.format(job_id=job_id)
+    
     headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
     
     while True:
