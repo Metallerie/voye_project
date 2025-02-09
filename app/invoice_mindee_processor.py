@@ -64,11 +64,15 @@ def process_invoice(file_path):
     
     if response.status_code != 201:
         print(f"❌ Erreur API Mindee : {response.status_code}")
+        print(f"🔍 Réponse complète : {response.text}")  # Ajout pour debug
         return
     
-    job_id = response.json().get("job_id")
+    response_data = response.json()
+    print(f"🔍 Réponse API Mindee : {json.dumps(response_data, indent=4)}")  # Affichage complet pour debug
+    
+    job_id = response_data.get("job_id")
     if not job_id:
-        print("❌ Erreur : Impossible de récupérer l'ID du job Mindee.")
+        print("❌ Erreur : Impossible de récupérer l'ID du job Mindee. Vérifie le format de la réponse API.")
         return
     
     print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
