@@ -7,7 +7,7 @@ MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 
 # URL pour soumettre et récupérer les résultats
 SUBMIT_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
-RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/documents/{document_id}"
+RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{document_id}"
 
 # Chemin vers le fichier à soumettre
 FILE_PATH = "/data/voye/app/Facture_CCL_130616.pdf"
