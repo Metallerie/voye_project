@@ -20,7 +20,7 @@ def extract_and_create_json(pdf_path):
 
     try:
         with open(pdf_path, "rb") as f:
-            input_doc = mindee_client.source_from_file(f, filename=os.path.basename(pdf_path))
+            input_doc = mindee_client.source_from_file(f)
             api_response = mindee_client.parse(product.InvoiceV4, input_doc)
     except Exception as e:
         _logger.error(f"Erreur lors de la lecture du document {pdf_path}: {e}")
@@ -75,7 +75,7 @@ def extract_and_create_json(pdf_path):
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    pdf_path = "/data/voye/app/Facture_CCL_130616.pdf"  # Remplacez par le chemin de votre fichier PDF
+    pdf_path = "/data/voye/app/Facture_CCL_130616.pdf"  # Chemin de votre fichier PDF
     if os.path.exists(pdf_path):
         extract_and_create_json(pdf_path)
     else:
