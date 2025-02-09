@@ -5,12 +5,12 @@ import time
 # Clé API Mindee
 MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 
-# URLs pour soumettre et récupérer les résultats
+# URL pour soumettre et récupérer les résultats
 SUBMIT_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
 RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{job_id}"
 
 # Chemin vers le fichier à soumettre
-FILE_PATH = "/data/voye/app/Facture_CCL_130616.pdf"
+FILE_PATH = "path/to/your/invoice.pdf"
 
 # En-têtes de la requête
 headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
@@ -25,8 +25,12 @@ def submit_document(file_path):
         return None
 
     data = response.json()
+    print(f"🔍 Réponse de l'API après soumission : {json.dumps(data, indent=4, ensure_ascii=False)}")
     job_id = data.get("job", {}).get("id")
-    print(f"📄 Document soumis avec succès. Job ID : {job_id}")
+    if job_id:
+        print(f"📄 Document soumis avec succès. Job ID : {job_id}")
+    else:
+        print("❌ Impossible de récupérer le Job ID.")
     return job_id
 
 def retrieve_results(job_id):
