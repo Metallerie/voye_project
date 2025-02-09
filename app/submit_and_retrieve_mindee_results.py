@@ -10,7 +10,7 @@ SUBMIT_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
 RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{job_id}"
 
 # Chemin vers le fichier à soumettre
-FILE_PATH = "path/to/your/invoice.pdf"
+FILE_PATH = "/data/voye/app/Facture_CCL_130616.pdf"
 
 # En-têtes de la requête
 headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
