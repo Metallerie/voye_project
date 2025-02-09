@@ -28,7 +28,7 @@ if not all([MINDEE_API_KEY, MINDEE_API_URL, MINDEE_STATUS_URL, INVOICE_STORAGE_P
     exit(1)
 
 # Fonction pour vérifier le statut d'une requête Mindee
-def get_mindee_results(job_id, response_data):
+def get_mindee_results(job_id):
     # Utilisation de l'URL correcte pour récupérer les résultats
     status_url = MINDEE_STATUS_URL.format(job_id=job_id)
     
@@ -78,9 +78,13 @@ def process_invoice(file_path):
     response_data = response.json()
     print("🔍 Réponse complète de Mindee :", json.dumps(response_data, indent=4))  # Debug
     
-    job_id = response_data.get("document", {}).get("id")
+    job_id = response_data.get("job", {}).get("id")
+    if not job_id:
+        print("❌ Erreur : Aucun job ID reçu.")
+        return
+    
     print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
-    data = get_mindee_results(job_id, response_data)
+    data = get_mindee_results(job_id)
     if not data:
         return
     
