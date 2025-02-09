@@ -4,6 +4,8 @@ import json
 import time
 import datetime
 from pymongo import MongoClient
+from mindee import Client, product
+
 
 # Connexion à MongoDB
 client = MongoClient("mongodb://localhost:27017/")
