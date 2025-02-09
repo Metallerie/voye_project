@@ -75,7 +75,7 @@ def extract_and_create_json(pdf_path):
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    pdf_path = "exemple_facture.pdf"  # Remplacez par le chemin de votre fichier PDF
+    pdf_path = "/data/voye/app/Facture_CCL_130616.pdf"  # Remplacez par le chemin de votre fichier PDF
     if os.path.exists(pdf_path):
         extract_and_create_json(pdf_path)
     else:
