@@ -27,20 +27,21 @@ if not all([MINDEE_API_KEY, MINDEE_API_URL, INVOICE_STORAGE_PATH, INPUT_DIRECTOR
     exit(1)
 
 # Fonction pour vérifier le statut d'une requête Mindee
-def get_mindee_results(job_id):
-    if not job_id:
-        print("❌ Erreur : Job ID invalide.")
-        return None
-    
+def get_mindee_results(job_id, response_data):
+    # Utilisation de l'URL correcte pour récupérer les résultats
     status_url = f"{MINDEE_API_URL}/documents/queue/{job_id}"
-    headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
     
-    print(f"🔍 Vérification du statut via {status_url}")
+    headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
     
     while True:
         response = requests.get(status_url, headers=headers)
         if response.status_code != 200:
             print(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
+            try:
+                error_details = response.json()
+                print("🔍 Détails de l'erreur :", json.dumps(error_details, indent=4))
+            except json.JSONDecodeError:
+                print("🔍 Impossible de décoder la réponse JSON de l'erreur.")
             return None
         
         data = response.json()
@@ -78,7 +79,7 @@ def process_invoice(file_path):
     
     job_id = response_data.get("document", {}).get("id")
     print(f"📊 Job ID reçu : {job_id}. Attente des résultats...")
-    data = get_mindee_results(job_id)
+    data = get_mindee_results(job_id, response_data)
     if not data:
         return
     
