@@ -26,12 +26,15 @@ def submit_document(file_path):
 
     data = response.json()
     print(f"🔍 Réponse de l'API après soumission : {json.dumps(data, indent=4, ensure_ascii=False)}")
-    job_id = data.get("job", {}).get("id")
-    if job_id:
+    
+    # Vérification de l'existence du Job ID dans la réponse
+    if "job" in data and "id" in data["job"]:
+        job_id = data["job"]["id"]
         print(f"📄 Document soumis avec succès. Job ID : {job_id}")
+        return job_id
     else:
         print("❌ Impossible de récupérer le Job ID.")
-    return job_id
+        return None
 
 def retrieve_results(job_id):
     while True:
