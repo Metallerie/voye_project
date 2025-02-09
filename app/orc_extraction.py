@@ -28,19 +28,18 @@ def extract_and_create_json(pdf_path):
 
     document = api_response.document
     partner_name = (
-        document.inference.prediction.supplier_name.value
-        if document.inference.prediction.supplier_name else "Nom Inconnu"
+        document.inference.prediction.supplier_name.value if document.inference.prediction.supplier_name else "Nom Inconnu"
     )
-    partner_address = document.inference.prediction.supplier_address.value or "Adresse non fournie"
+    partner_address = document.inference.prediction.supplier_address.value if document.inference.prediction.supplier_address else "Adresse non fournie"
 
     line_items = document.inference.prediction.line_items or []
     lines = []
 
     for item in line_items:
-        description = item.description or "Description non fournie"
-        unit_price = item.unit_price or 0.0
-        quantity = item.quantity or 1
-        tax_rate = item.tax_rate or 0.0
+        description = item.description.value if item.description else "Description non fournie"
+        unit_price = item.unit_price.value if item.unit_price else 0.0
+        quantity = item.quantity.value if item.quantity else 1
+        tax_rate = item.tax_rate.value if item.tax_rate else 0.0
 
         line_data = {
             "description": description,
@@ -50,16 +49,16 @@ def extract_and_create_json(pdf_path):
         }
         lines.append(line_data)
 
-    document_total_net = document.inference.prediction.total_net.value or 0.0
-    document_total_amount = document.inference.prediction.total_amount.value or 0.0
-    document_total_tax = document.inference.prediction.total_tax.value or 0.0
+    document_total_net = document.inference.prediction.total_net.value if document.inference.prediction.total_net else 0.0
+    document_total_amount = document.inference.prediction.total_amount.value if document.inference.prediction.total_amount else 0.0
+    document_total_tax = document.inference.prediction.total_tax.value if document.inference.prediction.total_tax else 0.0
 
     invoice_data = {
         "partner_name": partner_name,
         "partner_address": partner_address,
         "invoice_date": document.inference.prediction.date.value if document.inference.prediction.date else None,
         "invoice_date_due": document.inference.prediction.due_date.value if document.inference.prediction.due_date else None,
-        "invoice_number": document.inference.prediction.invoice_number or "Référence inconnue",
+        "invoice_number": document.inference.prediction.invoice_number.value if document.inference.prediction.invoice_number else "Référence inconnue",
         "line_items": lines,
         "total_net": document_total_net,
         "total_tax": document_total_tax,
