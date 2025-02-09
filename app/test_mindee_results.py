@@ -6,7 +6,7 @@ import time
 MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
 
 # URL de récupération des résultats (VÉRIFIÉE AVEC LA DOC)
-RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/documents/queue/{job_id}"
+RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict/{job_id}"
 
 # Remplace par ton Job ID reçu
 job_id = "b6123ff8-f290-405b-b4c5-3ded2539c593"
