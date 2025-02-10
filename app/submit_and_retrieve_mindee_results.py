@@ -1,121 +1,98 @@
-import requests
+import os
 import json
-import time
-import logging
 from mindee import Client, product
+import logging
+from pymongo import MongoClient
+
+# Configuration du logger
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
-# Clé API Mindee
-MINDEE_API_KEY = "6f85a0b7bbbff23c76d7392514678a61"
+# Connexion à MongoDB pour récupérer les configurations
+def get_config():
+    client = MongoClient("mongodb://localhost:27017/")
+    db = client["voye_db"]
+    collection = db["voye_config"]
+    config_data = {item["key"]: item["value"] for item in collection.find()}
+    client.close()
+    return config_data
 
-# URL pour soumettre et récupérer les résultats
-SUBMIT_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/predict"
-RESULTS_URL = "https://api.mindee.net/v1/products/mindee/invoices/v4/documents/{document_id}"
+config = get_config()
+API_KEY = config.get("mindee_api_key", "")
+INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
 
-# Chemin vers le fichier à soumettre
-FILE_PATH = "/data/voye/app/Facture_CCL_130616.pdf"
+# Fonction pour extraire les informations d'un PDF et créer un fichier JSON
+def extract_and_create_json(pdf_path):
+    try:
+        mindee_client = Client(api_key=API_KEY)
+    except Exception as e:
+        _logger.error(f"Échec de l'initialisation du client Mindee: {e}")
+        return False
 
-# En-têtes de la requête
-headers = {"Authorization": f"Token {MINDEE_API_KEY}"}
+    try:
+        with open(pdf_path, "rb") as f:
+            input_doc = mindee_client.source_from_file(f)
+            api_response = mindee_client.parse(product.InvoiceV4, input_doc)
+    except Exception as e:
+        _logger.error(f"Erreur lors de la lecture du document {pdf_path}: {e}")
+        return False
 
-def submit_document(file_path):
-    files = {'document': open(file_path, 'rb')}
-    response = requests.post(SUBMIT_URL, headers=headers, files=files)
-    
-    if response.status_code != 201:
-        _logger.error(f"❌ Erreur lors de la soumission du document : {response.status_code}")
-        _logger.error(f"🔍 Réponse complète : {response.text}")
-        return None
+    document = api_response.document
+    partner_name = (
+        document.inference.prediction.supplier_name.value
+        if hasattr(document.inference.prediction.supplier_name, 'value') else document.inference.prediction.supplier_name
+        if document.inference.prediction.supplier_name else "Nom Inconnu"
+    )
+    partner_address = (
+        document.inference.prediction.supplier_address.value
+        if hasattr(document.inference.prediction.supplier_address, 'value') else document.inference.prediction.supplier_address
+        if document.inference.prediction.supplier_address else "Adresse non fournie"
+    )
 
-    data = response.json()
-    _logger.info(f"🔍 Réponse de l'API après soumission : {json.dumps(data, indent=4, ensure_ascii=False)}")
-    
-    # Vérification de l'existence de l'identifiant de document dans la réponse
-    if "document" in data and "id" in data["document"]:
-        document_id = data["document"]["id"]
-        _logger.info(f"📄 Document soumis avec succès. Document ID : {document_id}")
-        return document_id
-    else:
-        _logger.error("❌ Impossible de récupérer l'identifiant du document.")
-        return None
-
-def retrieve_results(document_id):
-    while True:
-        response = requests.get(RESULTS_URL.format(document_id=document_id), headers=headers)
-        
-        if response.status_code != 200:
-            _logger.error(f"❌ Erreur lors de la récupération des résultats : {response.status_code}")
-            _logger.error(f"🔍 Réponse complète : {response.text}")
-            return None
-
-        data = response.json()
-        job_status = data.get("document", {}).get("status", "")
-
-        _logger.info(f"📊 Statut du document : {job_status}")
-
-        if job_status == "completed":
-            _logger.info("✅ Résultats récupérés avec succès !")
-            return data
-        else:
-            _logger.info("⏳ Traitement en cours... Nouvelle tentative dans 5 secondes.")
-            time.sleep(5)
-
-def save_results_to_json(data, file_path):
-    with open(file_path, 'w', encoding='utf-8') as json_file:
-        json.dump(data, json_file, indent=4, ensure_ascii=False)
-    _logger.info(f"📁 Résultats enregistrés dans le fichier : {file_path}")
-
-def process_invoice_data(data):
-    document = data.get("document", {})
-    inference = document.get("inference", {})
-    prediction = inference.get("prediction", {})
-
-    supplier_name = prediction.get("supplier_name", {}).get("value", "Nom Inconnu")
-    supplier_address = prediction.get("supplier_address", {}).get("value", "Adresse non fournie")
-    invoice_number = prediction.get("invoice_number", {}).get("value", "Référence inconnue")
-    invoice_date = prediction.get("date", {}).get("value")
-    due_date = prediction.get("due_date", {}).get("value")
-    
-    line_items = prediction.get("line_items", [])
-    total_net = prediction.get("total_net", {}).get("value", 0.0)
-    total_amount = prediction.get("total_amount", {}).get("value", 0.0)
-    total_tax = prediction.get("total_tax", {}).get("value", 0.0)
-    
-    _logger.info(f"Fournisseur : {supplier_name}")
-    _logger.info(f"Adresse : {supplier_address}")
-    _logger.info(f"Numéro de facture : {invoice_number}")
-    _logger.info(f"Date de la facture : {invoice_date}")
-    _logger.info(f"Date d'échéance : {due_date}")
-    _logger.info(f"Total net : {total_net}")
-    _logger.info(f"Total montant : {total_amount}")
-    _logger.info(f"Total taxe : {total_tax}")
+    line_items = document.inference.prediction.line_items or []
+    lines = []
 
     for item in line_items:
-        description = item.get("description", "Description non fournie")
-        unit_price = item.get("unit_price", 0.0)
-        quantity = item.get("quantity", 1)
-        tax_rate = item.get("tax_rate", 0.0)
-        total_line = unit_price * quantity
-        tax_amount = total_line * (tax_rate / 100.0)
-        
-        _logger.info(f"Article : {description}")
-        _logger.info(f"Prix unitaire : {unit_price}")
-        _logger.info(f"Quantité : {quantity}")
-        _logger.info(f"Total ligne : {total_line}")
-        _logger.info(f"Taxe : {tax_amount}")
+        description = item.description.value if hasattr(item.description, 'value') else item.description if item.description else "Description non fournie"
+        unit_price = item.unit_price.value if hasattr(item.unit_price, 'value') else item.unit_price if item.unit_price else 0.0
+        quantity = item.quantity.value if hasattr(item.quantity, 'value') else item.quantity if item.quantity else 1
+        tax_rate = item.tax_rate.value if hasattr(item.tax_rate, 'value') else item.tax_rate if item.tax_rate else 0.0
 
-def main():
-    # Soumettre le document à Mindee
-    document_id = submit_document(FILE_PATH)
-    if document_id is not None:
-        # Récupérer les résultats de Mindee
-        results = retrieve_results(document_id)
-        if results is not None:
-            # Enregistrer les résultats dans un fichier JSON
-            save_results_to_json(results, 'mindee_results.json')
-            # Traiter les données de la facture
-            process_invoice_data(results)
+        line_data = {
+            "description": description,
+            "unit_price": unit_price,
+            "quantity": quantity,
+            "tax_rate": tax_rate,
+        }
+        lines.append(line_data)
 
+    document_total_net = document.inference.prediction.total_net.value if hasattr(document.inference.prediction.total_net, 'value') else document.inference.prediction.total_net if document.inference.prediction.total_net else 0.0
+    document_total_amount = document.inference.prediction.total_amount.value if hasattr(document.inference.prediction.total_amount, 'value') else document.inference.prediction.total_amount if document.inference.prediction.total_amount else 0.0
+    document_total_tax = document.inference.prediction.total_tax.value if hasattr(document.inference.prediction.total_tax, 'value') else document.inference.prediction.total_tax if document.inference.prediction.total_tax else 0.0
+
+    invoice_data = {
+        "partner_name": partner_name,
+        "partner_address": partner_address,
+        "invoice_date": document.inference.prediction.date.value if hasattr(document.inference.prediction.date, 'value') else document.inference.prediction.date if document.inference.prediction.date else None,
+        "invoice_date_due": document.inference.prediction.due_date.value if hasattr(document.inference.prediction.due_date, 'value') else document.inference.prediction.due_date if document.inference.prediction.due_date else None,
+        "invoice_number": document.inference.prediction.invoice_number.value if hasattr(document.inference.prediction.invoice_number, 'value') else document.inference.prediction.invoice_number if document.inference.prediction.invoice_number else "Référence inconnue",
+        "line_items": lines,
+        "total_net": document_total_net,
+        "total_tax": document_total_tax,
+        "total_amount": document_total_amount,
+    }
+
+    json_filename = os.path.splitext(os.path.basename(pdf_path))[0] + ".json"
+    with open(json_filename, "w", encoding="utf-8") as json_file:
+        json.dump(invoice_data, json_file, ensure_ascii=False, indent=4)
+
+    _logger.info(f"Fichier JSON créé : {json_filename}")
+    return True
+
+# Exemple d'utilisation
 if __name__ == "__main__":
-    main()
+    pdf_path = os.path.join(INPUT_DIRECTORY, "Facture_CCL_130616.pdf")  # Chemin de votre fichier PDF
+    if os.path.exists(pdf_path):
+        extract_and_create_json(pdf_path)
+    else:
+        _logger.error(f"Le fichier PDF {pdf_path} n'existe pas.")
