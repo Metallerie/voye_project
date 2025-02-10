@@ -42,7 +42,12 @@ def extract_and_create_json(pdf_path):
     
     # Extraire toutes les données disponibles
     for field, value in document.inference.prediction.__dict__.items():
-        if hasattr(value, 'value'):
+        if isinstance(value, list):
+            extracted_data[field] = [
+                {k: v.value if hasattr(v, 'value') else v for k, v in item.__dict__.items()}
+                for item in value
+            ]
+        elif hasattr(value, 'value'):
             extracted_data[field] = value.value
         else:
             extracted_data[field] = value
