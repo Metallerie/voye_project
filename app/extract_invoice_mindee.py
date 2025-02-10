@@ -61,7 +61,7 @@ def extract_and_create_json(pdf_path):
 
 # Exemple d'utilisation
 if __name__ == "__main__":
-    pdf_path = os.path.join(INPUT_DIRECTORY, "Facture_CCL_130616.pdf")  # Chemin de votre fichier PDF
+    pdf_path = os.path.join(INPUT_DIRECTORY, "Facture_Free_202501_15511313_1344287431.pdf")  # Chemin de votre fichier PDF
     if os.path.exists(pdf_path):
         extract_and_create_json(pdf_path)
     else:
