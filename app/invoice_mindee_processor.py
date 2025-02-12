@@ -12,23 +12,16 @@ _logger = logging.getLogger(__name__)
 
 # Connexion à MongoDB pour récupérer les configurations
 def get_config():
-    client = MongoClient("mongodb://localhost:27017/")
-    db = client["voye_db"]
-    collection = db["voye_config"]
-    config_data = {item["key"]: item["value"] for item in collection.find()}
-    client.close()
-    return config_data
+    with MongoClient("mongodb://localhost:27017/") as client:
+        db = client["voye_db"]
+        collection = db["voye_config"]
+        return {item["key"]: item["value"] for item in collection.find()}
 
 config = get_config()
 API_KEY = config.get("mindee_api_key", "")
 INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
 INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")
 ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")
-
-# Connexion à MongoDB pour stocker l'indexation des documents
-client = MongoClient("mongodb://localhost:27017/")
-db = client["voye_db"]
-index_collection = db["index_document"]
 
 # Fonction pour calculer le hash MD5 du fichier
 def calculate_file_hash(file_path, hash_algorithm="md5"):
@@ -50,6 +43,10 @@ def extract_and_create_json(pdf_path, filename):
         with open(pdf_path, "rb") as f:
             input_doc = mindee_client.source_from_file(f)
             api_response = mindee_client.parse(product.InvoiceV4, input_doc)
+        
+        if not api_response.success or not api_response.document:
+            _logger.error(f"Erreur Mindee : Impossible d'extraire le document {pdf_path}")
+            return False, None
     except Exception as e:
         _logger.error(f"Erreur lors de la lecture du document {pdf_path}: {e}")
         return False, None
@@ -69,11 +66,9 @@ def extract_and_create_json(pdf_path, filename):
         else:
             extracted_data[field] = value
     
-    # Extraire le nom du partenaire et la date d'émission du document
     partner_name = extracted_data.get("supplier_name") or extracted_data.get("company_name", "Unknown")
     document_date = extracted_data.get("date") or extracted_data.get("invoice_date", "Unknown")
     
-    # Définir l'année en cours et un index temporel précis
     current_year = datetime.datetime.now().year
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     output_directory = os.path.join(INVOICE_STORAGE_PATH, str(current_year))
@@ -81,48 +76,54 @@ def extract_and_create_json(pdf_path, filename):
     
     json_filename = os.path.join(output_directory, f"{timestamp}.json")
     
-    # Calculer la taille et le hash du fichier original
     file_size = os.path.getsize(pdf_path)
     file_hash = calculate_file_hash(pdf_path, "md5")
+    extracted_data["checksum"] = file_hash
     
-    extracted_data["checksum"] = file_hash  # Ajouter le hash au JSON
     with open(json_filename, "w", encoding="utf-8") as json_file:
         json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
-
+    
     _logger.info(f"Fichier JSON créé : {json_filename}")
     return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date, file_size, file_hash
 
-# Traiter tous les fichiers présents dans le dossier d'entrée
 if __name__ == "__main__":
     if not os.path.exists(INPUT_DIRECTORY):
         _logger.error(f"Le répertoire d'entrée {INPUT_DIRECTORY} n'existe pas.")
     else:
-        for filename in os.listdir(INPUT_DIRECTORY):
-            if filename.lower().endswith(".pdf"):
-                pdf_path = os.path.join(INPUT_DIRECTORY, filename)
-                _logger.info(f"Traitement du fichier : {pdf_path}")
-                success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = extract_and_create_json(pdf_path, filename)
-                if success:
-                    _logger.info(f"Fichier traité avec succès : {filename}")
-                    archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
-                    os.makedirs(archive_path, exist_ok=True)
-                    os.rename(pdf_path, os.path.join(archive_path, filename))
-                    _logger.info(f"Fichier d'origine déplacé dans : {archive_path}")
+        with MongoClient("mongodb://localhost:27017/") as client:
+            db = client["voye_db"]
+            index_collection = db["index_document"]
+            
+            for filename in os.listdir(INPUT_DIRECTORY):
+                if filename.lower().endswith(".pdf"):
+                    pdf_path = os.path.join(INPUT_DIRECTORY, filename)
+                    _logger.info(f"Traitement du fichier : {pdf_path}")
+                    success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = extract_and_create_json(pdf_path, filename)
                     
-                    # Indexer le document dans MongoDB
-                    document_index = {
-                        "original_filename": filename,
-                        "document_type": "invoice",  # Ce type peut être déduit plus tard
-                        "json_filename": json_filename,
-                        "storage_path": storage_path,
-                        "archive_path": archive_path,
-                        "partner_name": partner_name,
-                        "document_date": document_date,
-                        "file_size": file_size,
-                        "checksum": file_hash,
-                        "timestamp": datetime.datetime.now()
-                    }
-                    index_collection.insert_one(document_index)
-                    _logger.info(f"Document indexé dans MongoDB : {filename}")
-                else:
-                    _logger.error(f"Echec du traitement : {filename}")
+                    if success:
+                        existing_doc = index_collection.find_one({"checksum": file_hash})
+                        if existing_doc:
+                            _logger.warning(f"Document déjà indexé : {filename} (checksum identique)")
+                        else:
+                            _logger.info(f"Fichier traité avec succès : {filename}")
+                            archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
+                            os.makedirs(archive_path, exist_ok=True)
+                            os.rename(pdf_path, os.path.join(archive_path, filename))
+                            _logger.info(f"Fichier d'origine déplacé dans : {archive_path}")
+                            
+                            document_index = {
+                                "original_filename": filename,
+                                "document_type": "invoice",
+                                "json_filename": json_filename,
+                                "storage_path": storage_path,
+                                "archive_path": archive_path,
+                                "partner_name": partner_name,
+                                "document_date": document_date,
+                                "file_size": file_size,
+                                "checksum": file_hash,
+                                "timestamp": datetime.datetime.now()
+                            }
+                            index_collection.insert_one(document_index)
+                            _logger.info(f"Document indexé dans MongoDB : {filename}")
+                    else:
+                        _logger.error(f"Échec du traitement : {filename}")
