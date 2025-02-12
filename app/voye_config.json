@@ -75,7 +75,7 @@
   {
     _id: ObjectId('67a876d67bcc3ba536544caf'),
     key: 'archive_directory',
-    value: '/data/voye/archive/invoice',
+    value: '/data/voye/archive/invoice/',
     description: 'Répertoire où les factures traitées sont déplacées après extraction des données.'
   },
   {
