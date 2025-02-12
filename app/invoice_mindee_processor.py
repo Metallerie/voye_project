@@ -22,6 +22,7 @@ API_KEY = config.get("mindee_api_key", "")
 INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
 INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")
 ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")
+ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")
 
 # Fonction pour calculer le hash MD5 du fichier
 def calculate_file_hash(file_path, hash_algorithm="md5"):
@@ -44,11 +45,15 @@ def extract_and_create_json(pdf_path, filename):
             input_doc = mindee_client.source_from_file(f)
             api_response = mindee_client.parse(product.InvoiceV4, input_doc)
         
-        if not api_response.success or not api_response.document:
+        if not hasattr(api_response, 'document') or api_response.document is None:
             _logger.error(f"Erreur Mindee : Impossible d'extraire le document {pdf_path}")
             return False, None
     except Exception as e:
         _logger.error(f"Erreur lors de la lecture du document {pdf_path}: {e}")
+        error_path = os.path.join(ERROR_DIRECTORY, filename)
+        os.makedirs(ERROR_DIRECTORY, exist_ok=True)
+        os.rename(pdf_path, error_path)
+        _logger.info(f"Document déplacé dans le dossier d'erreur : {error_path}")
         return False, None
 
     document = api_response.document
