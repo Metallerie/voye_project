@@ -99,9 +99,17 @@ if __name__ == "__main__":
             db = client["voye_db"]
             index_collection = db["index_document"]
             
+            processed_files = set()
             for filename in os.listdir(INPUT_DIRECTORY):
                 if filename.lower().endswith(".pdf"):
                     pdf_path = os.path.join(INPUT_DIRECTORY, filename)
+                    file_hash = calculate_file_hash(pdf_path, "md5")
+                    
+                    if file_hash in processed_files:
+                        _logger.warning(f"Fichier en double détecté et ignoré : {filename}")
+                        os.remove(pdf_path)
+                        continue
+                    
                     _logger.info(f"Traitement du fichier : {pdf_path}")
                     success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = extract_and_create_json(pdf_path, filename)
                     
@@ -109,6 +117,7 @@ if __name__ == "__main__":
                         existing_doc = index_collection.find_one({"checksum": file_hash})
                         if existing_doc:
                             _logger.warning(f"Document déjà indexé : {filename} (checksum identique)")
+                            os.remove(pdf_path)
                         else:
                             _logger.info(f"Fichier traité avec succès : {filename}")
                             archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
@@ -130,5 +139,6 @@ if __name__ == "__main__":
                             }
                             index_collection.insert_one(document_index)
                             _logger.info(f"Document indexé dans MongoDB : {filename}")
+                        processed_files.add(file_hash)
                     else:
                         _logger.error(f"Échec du traitement : {filename}")
