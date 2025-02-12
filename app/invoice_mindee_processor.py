@@ -1,7 +1,8 @@
 import os
 import json
-from mindee import Client, product
 import logging
+import datetime
+from mindee import Client, product
 from pymongo import MongoClient
 
 # Configuration du logger
@@ -20,6 +21,8 @@ def get_config():
 config = get_config()
 API_KEY = config.get("mindee_api_key", "")
 INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
+INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")
+ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")
 
 # Fonction pour extraire les informations d'un PDF et créer un fichier JSON
 def extract_and_create_json(pdf_path):
@@ -52,17 +55,34 @@ def extract_and_create_json(pdf_path):
         else:
             extracted_data[field] = value
     
-    json_filename = os.path.splitext(os.path.basename(pdf_path))[0] + ".json"
+    # Définir l'année en cours et un index temporel précis
+    current_year = datetime.datetime.now().year
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_directory = os.path.join(INVOICE_STORAGE_PATH, str(current_year))
+    os.makedirs(output_directory, exist_ok=True)
+    
+    json_filename = os.path.join(output_directory, f"{timestamp}.json")
     with open(json_filename, "w", encoding="utf-8") as json_file:
         json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
 
     _logger.info(f"Fichier JSON créé : {json_filename}")
     return True
 
-# Exemple d'utilisation
+# Traiter tous les fichiers présents dans le dossier d'entrée
 if __name__ == "__main__":
-    pdf_path = os.path.join(INPUT_DIRECTORY, "Facture_CCL_130616.pdf")  # Chemin de votre fichier PDF
-    if os.path.exists(pdf_path):
-        extract_and_create_json(pdf_path)
+    if not os.path.exists(INPUT_DIRECTORY):
+        _logger.error(f"Le répertoire d'entrée {INPUT_DIRECTORY} n'existe pas.")
     else:
-        _logger.error(f"Le fichier PDF {pdf_path} n'existe pas.")
+        for filename in os.listdir(INPUT_DIRECTORY):
+            if filename.lower().endswith(".pdf"):
+                pdf_path = os.path.join(INPUT_DIRECTORY, filename)
+                _logger.info(f"Traitement du fichier : {pdf_path}")
+                success = extract_and_create_json(pdf_path)
+                if success:
+                    _logger.info(f"Fichier traité avec succès : {filename}")
+                    archive_path = os.path.join(ARCHIVE_DIRECTORY, str(current_year))
+                    os.makedirs(archive_path, exist_ok=True)
+                    os.rename(pdf_path, os.path.join(archive_path, filename))
+                    _logger.info(f"Fichier d'origine déplacé dans : {archive_path}")
+                else:
+                    _logger.error(f"Echec du traitement : {filename}")
