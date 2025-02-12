@@ -66,7 +66,7 @@ def extract_and_create_json(pdf_path):
         json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
 
     _logger.info(f"Fichier JSON créé : {json_filename}")
-    return True
+    return True, current_year
 
 # Traiter tous les fichiers présents dans le dossier d'entrée
 if __name__ == "__main__":
@@ -77,7 +77,7 @@ if __name__ == "__main__":
             if filename.lower().endswith(".pdf"):
                 pdf_path = os.path.join(INPUT_DIRECTORY, filename)
                 _logger.info(f"Traitement du fichier : {pdf_path}")
-                success = extract_and_create_json(pdf_path)
+                success, current_year = extract_and_create_json(pdf_path)
                 if success:
                     _logger.info(f"Fichier traité avec succès : {filename}")
                     archive_path = os.path.join(ARCHIVE_DIRECTORY, str(current_year))
