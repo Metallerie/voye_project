@@ -47,8 +47,6 @@ def extract_and_create_json(pdf_path, filename):
 
     document = api_response.document
     extracted_data = {}
-    partner_name = extracted_data.get("supplier_name", "Unknown")
-    document_date = extracted_data.get("date", "Unknown")
     
     # Extraire toutes les données disponibles
     for field, value in document.inference.prediction.__dict__.items():
@@ -61,6 +59,10 @@ def extract_and_create_json(pdf_path, filename):
             extracted_data[field] = value.value
         else:
             extracted_data[field] = value
+    
+    # Extraire le nom du partenaire et la date d'émission du document
+    partner_name = extracted_data.get("supplier_name") or extracted_data.get("company_name", "Unknown")
+    document_date = extracted_data.get("date") or extracted_data.get("invoice_date", "Unknown")
     
     # Définir l'année en cours et un index temporel précis
     current_year = datetime.datetime.now().year
