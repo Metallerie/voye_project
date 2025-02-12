@@ -47,6 +47,8 @@ def extract_and_create_json(pdf_path, filename):
 
     document = api_response.document
     extracted_data = {}
+    partner_name = extracted_data.get("supplier_name", "Unknown")
+    document_date = extracted_data.get("date", "Unknown")
     
     # Extraire toutes les données disponibles
     for field, value in document.inference.prediction.__dict__.items():
@@ -71,7 +73,7 @@ def extract_and_create_json(pdf_path, filename):
         json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
 
     _logger.info(f"Fichier JSON créé : {json_filename}")
-    return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY
+    return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date
 
 # Traiter tous les fichiers présents dans le dossier d'entrée
 if __name__ == "__main__":
@@ -82,7 +84,7 @@ if __name__ == "__main__":
             if filename.lower().endswith(".pdf"):
                 pdf_path = os.path.join(INPUT_DIRECTORY, filename)
                 _logger.info(f"Traitement du fichier : {pdf_path}")
-                success, json_filename, storage_path, archive_path = extract_and_create_json(pdf_path, filename)
+                success, json_filename, storage_path, archive_path, partner_name, document_date = extract_and_create_json(pdf_path, filename)
                 if success:
                     _logger.info(f"Fichier traité avec succès : {filename}")
                     archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
@@ -97,6 +99,8 @@ if __name__ == "__main__":
                         "json_filename": json_filename,
                         "storage_path": storage_path,
                         "archive_path": archive_path,
+                        "partner_name": partner_name,
+                        "document_date": document_date,
                         "timestamp": datetime.datetime.now()
                     }
                     index_collection.insert_one(document_index)
