@@ -80,12 +80,14 @@ def extract_and_create_json(pdf_path, filename):
     os.makedirs(output_directory, exist_ok=True)
     
     json_filename = os.path.join(output_directory, f"{timestamp}.json")
-    with open(json_filename, "w", encoding="utf-8") as json_file:
-        json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
-
+    
     # Calculer la taille et le hash du fichier original
     file_size = os.path.getsize(pdf_path)
     file_hash = calculate_file_hash(pdf_path, "md5")
+    
+    extracted_data["checksum"] = file_hash  # Ajouter le hash au JSON
+    with open(json_filename, "w", encoding="utf-8") as json_file:
+        json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
 
     _logger.info(f"Fichier JSON créé : {json_filename}")
     return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date, file_size, file_hash
