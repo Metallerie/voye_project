@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import datetime
+import hashlib
 from mindee import Client, product
 from pymongo import MongoClient
 
@@ -28,6 +29,14 @@ ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/
 client = MongoClient("mongodb://localhost:27017/")
 db = client["voye_db"]
 index_collection = db["index_document"]
+
+# Fonction pour calculer le hash MD5 du fichier
+def calculate_file_hash(file_path, hash_algorithm="md5"):
+    hash_func = hashlib.md5() if hash_algorithm == "md5" else hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_func.update(chunk)
+    return hash_func.hexdigest()
 
 # Fonction pour extraire les informations d'un PDF et créer un fichier JSON
 def extract_and_create_json(pdf_path, filename):
@@ -74,8 +83,12 @@ def extract_and_create_json(pdf_path, filename):
     with open(json_filename, "w", encoding="utf-8") as json_file:
         json.dump(extracted_data, json_file, ensure_ascii=False, indent=4)
 
+    # Calculer la taille et le hash du fichier original
+    file_size = os.path.getsize(pdf_path)
+    file_hash = calculate_file_hash(pdf_path, "md5")
+
     _logger.info(f"Fichier JSON créé : {json_filename}")
-    return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date
+    return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date, file_size, file_hash
 
 # Traiter tous les fichiers présents dans le dossier d'entrée
 if __name__ == "__main__":
@@ -86,7 +99,7 @@ if __name__ == "__main__":
             if filename.lower().endswith(".pdf"):
                 pdf_path = os.path.join(INPUT_DIRECTORY, filename)
                 _logger.info(f"Traitement du fichier : {pdf_path}")
-                success, json_filename, storage_path, archive_path, partner_name, document_date = extract_and_create_json(pdf_path, filename)
+                success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = extract_and_create_json(pdf_path, filename)
                 if success:
                     _logger.info(f"Fichier traité avec succès : {filename}")
                     archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
@@ -103,6 +116,8 @@ if __name__ == "__main__":
                         "archive_path": archive_path,
                         "partner_name": partner_name,
                         "document_date": document_date,
+                        "file_size": file_size,
+                        "checksum": file_hash,
                         "timestamp": datetime.datetime.now()
                     }
                     index_collection.insert_one(document_index)
