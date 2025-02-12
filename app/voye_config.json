@@ -1,0 +1,88 @@
+[
+  {
+    _id: ObjectId('67a77ef9c8b332d70b544ca7'),
+    key: 'mindee_api_key',
+    value: '5ff0a5fdc10cdface0221a3c9f778a7d',
+    description: 'Clé API pour Mindee, utilisée pour extraire les données des factures.'
+  },
+  {
+    _id: ObjectId('67a77f0fc8b332d70b544ca8'),
+    key: 'mindee_api_url',
+    value: 'https://api.mindee.net/v1/products/mindee/invoices/v4/predict',
+    description: "URL de l'API Mindee pour l'extraction des factures."
+  },
+  {
+    _id: ObjectId('67a7b6526ab16e09aa544ca7'),
+    key: 'icu_locale',
+    value: 'fr_FR',
+    description: 'Paramètre de localisation ICU, utilisé pour le format des dates et nombres (ex: fr_FR, en_US).'
+  },
+  {
+    _id: ObjectId('67a7c380195e0caac7544ca7'),
+    key: 'deepl_api_key',
+    value: '39f9******f:fx',
+    url: 'https://www.deepl.com/fr/your-account/keys',
+    description: 'Clé API pour DeepL, utilisée pour la traduction automatique des documents.'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544ca7'),
+    key: 'default_language',
+    value: 'fr',
+    description: "Langue par défaut utilisée dans l'ERP Voye (ex: fr, en, es)."
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544ca8'),
+    key: 'default_currency',
+    value: 'EUR',
+    description: 'Devise par défaut utilisée pour les transactions (ex: EUR, USD, GBP).'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544ca9'),
+    key: 'storage_base_path',
+    value: '/data/voye/filestore/',
+    description: 'Chemin racine du stockage des documents et fichiers extraits.'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544caa'),
+    key: 'db_index_collection',
+    value: 'documents_index',
+    description: 'Nom de la collection MongoDB qui stocke les références des documents indexés.'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544cab'),
+    key: 'invoice_storage_path',
+    value: '/data/voye/filestore/account/invoice/',
+    description: 'Chemin de stockage des factures par année.'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544cac'),
+    key: 'product_storage_path',
+    value: '/data/voye/filestore/product/',
+    description: 'Chemin de stockage des informations sur les produits extraits des factures.'
+  },
+  {
+    _id: ObjectId('67a872297bcc3ba536544cad'),
+    key: 'partner_storage_path',
+    value: '/data/voye/filestore/partner/',
+    description: 'Chemin de stockage des informations sur les fournisseurs et partenaires.'
+  },
+  {
+    _id: ObjectId('67a876d67bcc3ba536544cae'),
+    key: 'input_directory',
+    value: '/data/voye/document/',
+    description: 'Répertoire où sont placées les factures à traiter avant envoi à Mindee.'
+  },
+  {
+    _id: ObjectId('67a876d67bcc3ba536544caf'),
+    key: 'archive_directory',
+    value: '/data/voye/archive/',
+    description: 'Répertoire où les factures traitées sont déplacées après extraction des données.'
+  },
+  {
+    _id: ObjectId('67a89946c8ff197660544ca7'),
+    key: 'url_status',
+    value: 'https://api.mindee.net/v1/products/mindee/invoices/v4/documents/queue',
+    description: 'URL status Mindee.'
+  }
+]
+voye_db> 
