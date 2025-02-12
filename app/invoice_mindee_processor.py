@@ -38,7 +38,7 @@ def extract_and_create_json(pdf_path, filename):
         mindee_client = Client(api_key=API_KEY)
     except Exception as e:
         _logger.error(f"Échec de l'initialisation du client Mindee: {e}")
-        return False, None
+        return False, None, None, None, None, None, None, None
 
     try:
         with open(pdf_path, "rb") as f:
@@ -47,14 +47,14 @@ def extract_and_create_json(pdf_path, filename):
         
         if not hasattr(api_response, 'document') or api_response.document is None:
             _logger.error(f"Erreur Mindee : Impossible d'extraire le document {pdf_path}")
-            return False, None
+            return False, None, None, None, None, None, None, None
     except Exception as e:
         _logger.error(f"Erreur lors de la lecture du document {pdf_path}: {e}")
         error_path = os.path.join(ERROR_DIRECTORY, filename)
         os.makedirs(ERROR_DIRECTORY, exist_ok=True)
         os.rename(pdf_path, error_path)
         _logger.info(f"Document déplacé dans le dossier d'erreur : {error_path}")
-        return False, None
+        return False, None, None, None, None, None, None, None
 
     document = api_response.document
     extracted_data = {}
@@ -111,9 +111,10 @@ if __name__ == "__main__":
                         continue
                     
                     _logger.info(f"Traitement du fichier : {pdf_path}")
-                    success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = extract_and_create_json(pdf_path, filename)
+                    result = extract_and_create_json(pdf_path, filename)
                     
-                    if success:
+                    if result[0]:
+                        success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = result
                         existing_doc = index_collection.find_one({"checksum": file_hash})
                         if existing_doc:
                             _logger.warning(f"Document déjà indexé : {filename} (checksum identique)")
