@@ -19,7 +19,6 @@ MONGO_HOST = config.get("MONGO_HOST", "localhost")
 MONGO_PORT = config.get("MONGO_PORT", "27017")
 DB_NAME = config.get("DB_NAME", "voye_db")  # Nom de la base MongoDB
 BACKUP_DIR = config.get("BACKUP_DIR", "/data/voye/mongo_backups")  # Dossier local des backups
-GIT_REPO_PATH = config.get("GIT_REPO_PATH", "/voye_project/mongo_backups")  # Chemin du dépôt Git
 GIT_REMOTE_URL = "git@github.com:Metallerie/voye_project.git"  # URL du repo Git
 RETENTION_DAYS = int(config.get("RETENTION_DAYS", 7))  # Durée de rétention des backups
 
