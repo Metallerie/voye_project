@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"d10adc5d29cd495fac594c2ec5e550e5","collectionName":"voye_config","type":"collection"}
