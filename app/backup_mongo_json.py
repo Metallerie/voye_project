@@ -9,7 +9,7 @@ MONGO_HOST = "localhost"
 MONGO_PORT = "27017"
 DB_NAME = "voye_db"
 BACKUP_DIR = "/data/voye/mongo_backups"
-GIT_REPO_PATH = "/data/voye/app/voye_project"
+GIT_REPO_PATH = "/data/voye/mongo_backups"
 GIT_REMOTE_URL = "git@github.com:Metallerie/voye_project.git"
 
 # Assurer l'existence du dossier
