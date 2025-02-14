@@ -51,4 +51,8 @@ if not os.path.exists(os.path.join(GIT_REPO_PATH, ".git")):
 try:
     subprocess.run(["git", "add", "."], cwd=GIT_REPO_PATH)
     subprocess.run(["git", "commit", "-m", f"Backup JSON MongoDB {DB_NAME} {date_str}"], cwd=GIT_REPO_PATH)
-    subprocess.run([
+    subprocess.run(["git", "pull", "--rebase", "origin", "main"], cwd=GIT_REPO_PATH)  # Synchroniser avant push
+    subprocess.run(["git", "push", "origin", "main"], cwd=GIT_REPO_PATH)
+    print("✅ Sauvegarde poussée sur Git ✅")
+except subprocess.CalledProcessError as e:
+    print(f"❌ Erreur lors du push sur Git : {e}")
