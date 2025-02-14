@@ -61,6 +61,9 @@ if not os.path.exists(os.path.join(GIT_REPO_PATH, ".git")):
     subprocess.run(["git", "init"], cwd=GIT_REPO_PATH)
     subprocess.run(["git", "remote", "add", "origin", GIT_REMOTE_URL], cwd=GIT_REPO_PATH)
 
+# Vérifier si la branche "main" existe, sinon la créer
+subprocess.run(["git", "branch", "-M", "main"], cwd=GIT_REPO_PATH)
+
 # Ajouter, committer et pousser sur GitHub
 try:
     subprocess.run(["git", "add", "."], cwd=GIT_REPO_PATH)
