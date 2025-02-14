@@ -21,14 +21,20 @@ backup_file = os.path.join(BACKUP_DIR, f"backup_{DB_NAME}_{date_str}.json")
 
 print(f"🔄 Sauvegarde MongoDB en JSON... ({backup_file})")
 
+# Fonction pour convertir les objets non sérialisables
+def json_converter(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()  # Convertir datetime en string ISO
+    raise TypeError(f"Type {type(obj)} non sérialisable")
+
 # Connexion à MongoDB et export en JSON
 with MongoClient(f"mongodb://{MONGO_HOST}:{MONGO_PORT}/") as client:
     db = client[DB_NAME]
     backup_data = {collection: list(db[collection].find({}, {"_id": 0})) for collection in db.list_collection_names()}
 
-# Enregistrer dans un fichier JSON
+# Enregistrer dans un fichier JSON avec conversion des datetime
 with open(backup_file, "w", encoding="utf-8") as f:
-    json.dump(backup_data, f, indent=4, ensure_ascii=False)
+    json.dump(backup_data, f, indent=4, ensure_ascii=False, default=json_converter)
 
 print(f"✅ Sauvegarde terminée : {backup_file}")
 
@@ -45,8 +51,4 @@ if not os.path.exists(os.path.join(GIT_REPO_PATH, ".git")):
 try:
     subprocess.run(["git", "add", "."], cwd=GIT_REPO_PATH)
     subprocess.run(["git", "commit", "-m", f"Backup JSON MongoDB {DB_NAME} {date_str}"], cwd=GIT_REPO_PATH)
-    subprocess.run(["git", "pull", "--rebase", "origin", "main"], cwd=GIT_REPO_PATH)  # Synchroniser avant push
-    subprocess.run(["git", "push", "origin", "main"], cwd=GIT_REPO_PATH)
-    print("✅ Sauvegarde poussée sur Git ✅")
-except subprocess.CalledProcessError as e:
-    print(f"❌ Erreur lors du push sur Git : {e}")
+    subprocess.run([
