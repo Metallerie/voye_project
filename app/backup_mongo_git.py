@@ -4,7 +4,7 @@ import datetime
 import shutil
 from pymongo import MongoClient
 
-# Récupérer la configuration depuis MongoDB
+# Fonction pour récupérer la config depuis MongoDB
 def get_config():
     with MongoClient("mongodb://localhost:27017/") as client:
         db = client["voye_db"]
@@ -14,16 +14,20 @@ def get_config():
 # Charger la configuration
 config = get_config()
 
-# Configuration par défaut + récupérée de MongoDB
+# Configuration locale et GitHub
 MONGO_HOST = config.get("MONGO_HOST", "localhost")
 MONGO_PORT = config.get("MONGO_PORT", "27017")
-DB_NAME = config.get("DB_NAME", "voye_db")  # Nom de la base MongoDB
-BACKUP_DIR = config.get("BACKUP_DIR", "/data/voye/mongo_backups")  # Dossier local des backups
-GIT_REMOTE_URL = "git@github.com:Metallerie/voye_project.git"  # URL du repo Git
-RETENTION_DAYS = int(config.get("RETENTION_DAYS", 7))  # Durée de rétention des backups
+DB_NAME = config.get("DB_NAME", "voye_db")
+BACKUP_DIR = config.get("BACKUP_DIR", "/data/voye/mongo_backups")  # Assure-toi que ce dossier est accessible
+GIT_REPO_PATH = config.get("GIT_REPO_PATH", "/data/voye/mongo_backups/")  # Chemin où est cloné le dépôt Git
+GIT_REMOTE_URL = "git@github.com:Metallerie/voye_project.git"
+RETENTION_DAYS = int(config.get("RETENTION_DAYS", 7))
 
-# Assurer l'existence des dossiers
-os.makedirs(BACKUP_DIR, exist_ok=True)
+# ✅ Vérifier si le chemin GIT_REPO_PATH est bien défini AVANT son utilisation
+if not GIT_REPO_PATH:
+    raise ValueError("⚠️ Erreur : GIT_REPO_PATH n'est pas défini ! Vérifie la configuration.")
+
+# ✅ S'assurer que le dossier existe
 os.makedirs(GIT_REPO_PATH, exist_ok=True)
 
 # Générer un nom de dossier avec la date
@@ -48,7 +52,7 @@ except subprocess.CalledProcessError as e:
     print(f"❌ Erreur lors de la sauvegarde : {e}")
     exit(1)
 
-# Copier le dump vers le dépôt Git
+# Copier le dump dans le dépôt Git
 backup_git_path = os.path.join(GIT_REPO_PATH, f"mongo_backup_{DB_NAME}_{date_str}")
 shutil.move(backup_path, backup_git_path)
 
@@ -57,7 +61,7 @@ if not os.path.exists(os.path.join(GIT_REPO_PATH, ".git")):
     subprocess.run(["git", "init"], cwd=GIT_REPO_PATH)
     subprocess.run(["git", "remote", "add", "origin", GIT_REMOTE_URL], cwd=GIT_REPO_PATH)
 
-# Ajouter, committer et pousser vers Git
+# Ajouter, committer et pousser sur GitHub
 try:
     subprocess.run(["git", "add", "."], cwd=GIT_REPO_PATH)
     subprocess.run(["git", "commit", "-m", f"Backup MongoDB {DB_NAME} {date_str}"], cwd=GIT_REPO_PATH)
@@ -66,19 +70,3 @@ try:
 except subprocess.CalledProcessError as e:
     print(f"❌ Erreur lors du push sur Git : {e}")
     exit(1)
-
-# Suppression des anciennes sauvegardes locales
-now = datetime.datetime.now()
-for folder in os.listdir(BACKUP_DIR):
-    folder_path = os.path.join(BACKUP_DIR, folder)
-    if os.path.isdir(folder_path):
-        try:
-            folder_time = datetime.datetime.strptime(folder.split("_")[-1], "%Y-%m-%d_%H-%M-%S")
-            age_days = (now - folder_time).days
-            if age_days > RETENTION_DAYS:
-                shutil.rmtree(folder_path)
-                print(f"🗑 Ancienne sauvegarde supprimée : {folder_path} (Âgée de {age_days} jours)")
-        except ValueError:
-            continue  # Ignore les dossiers mal formatés
-
-print("✅ Nettoyage terminé.")
