@@ -63,6 +63,12 @@ if not os.path.exists(os.path.join(GIT_REPO_PATH, ".git")):
 
 # Vérifier si la branche "main" existe, sinon la créer
 subprocess.run(["git", "branch", "-M", "main"], cwd=GIT_REPO_PATH)
+# Ajouter et committer automatiquement les fichiers avant le pull
+subprocess.run(["git", "add", "."], cwd=GIT_REPO_PATH)
+subprocess.run(["git", "commit", "-m", "Auto-commit avant pull"], cwd=GIT_REPO_PATH)
+
+# Synchroniser le dépôt avec GitHub avant le push
+subprocess.run(["git", "pull", "--rebase", "origin", "main"], cwd=GIT_REPO_PATH)
 
 # Ajouter, committer et pousser sur GitHub
 try:
