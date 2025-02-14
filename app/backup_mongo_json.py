@@ -4,12 +4,21 @@ import datetime
 import subprocess
 from pymongo import MongoClient
 
-# Configuration
+# Configuration MongoDB
 MONGO_HOST = "localhost"
 MONGO_PORT = "27017"
 DB_NAME = "voye_db"
-BACKUP_DIR = "/data/voye/mongo_backups"
-GIT_REPO_PATH = "/data/voye/mongo_backups"
+CONFIG_COLLECTION = "voye_config"
+CONFIG_KEY = "backup_voye_db_directory"
+
+# Connexion à MongoDB pour récupérer le répertoire de sauvegarde
+with MongoClient(f"mongodb://{MONGO_HOST}:{MONGO_PORT}/") as client:
+    db = client[DB_NAME]
+    config_entry = db[CONFIG_COLLECTION].find_one({"key": CONFIG_KEY})
+    BACKUP_DIR = config_entry["value"] if config_entry else "/data/voye/mongo_backups"
+
+# Le dépôt Git est le même répertoire que le backup
+GIT_REPO_PATH = BACKUP_DIR
 GIT_REMOTE_URL = "git@github.com:Metallerie/voye_project.git"
 
 # Assurer l'existence du dossier
@@ -24,7 +33,7 @@ print(f"🔄 Sauvegarde MongoDB en JSON... ({backup_file})")
 # Fonction pour convertir les objets non sérialisables
 def json_converter(obj):
     if isinstance(obj, datetime.datetime):
-        return obj.isoformat()  # Convertir datetime en string ISO
+        return obj.isoformat()
     raise TypeError(f"Type {type(obj)} non sérialisable")
 
 # Connexion à MongoDB et export en JSON
@@ -32,7 +41,7 @@ with MongoClient(f"mongodb://{MONGO_HOST}:{MONGO_PORT}/") as client:
     db = client[DB_NAME]
     backup_data = {collection: list(db[collection].find({}, {"_id": 0})) for collection in db.list_collection_names()}
 
-# Enregistrer dans un fichier JSON avec conversion des datetime
+# Enregistrer dans un fichier JSON
 with open(backup_file, "w", encoding="utf-8") as f:
     json.dump(backup_data, f, indent=4, ensure_ascii=False, default=json_converter)
 
