@@ -6,17 +6,20 @@ import hashlib
 from mindee import Client, product
 from pymongo import MongoClient
 
-# Configuration du logger
+# Configuration du logger pour afficher les messages d'information et d'erreur
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
-# Connexion à MongoDB pour récupérer les configurations
+# Fonction pour récupérer la configuration depuis MongoDB
+# Cette fonction permet d'obtenir les paramètres essentiels comme les chemins d'accès et la clé API Mindee
+
 def get_config():
     with MongoClient("mongodb://localhost:27017/") as client:
         db = client["voye_db"]
         collection = db["voye_config"]
         return {item["key"]: item["value"] for item in collection.find()}
 
+# Chargement de la configuration depuis la base de données
 config = get_config()
 API_KEY = config.get("mindee_api_key", "")
 INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
@@ -24,7 +27,9 @@ INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/
 ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")
 ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")
 
-# Fonction pour calculer le hash MD5 du fichier
+# Fonction pour calculer le hash d'un fichier (MD5 ou SHA256)
+# Utile pour identifier les doublons et assurer l'intégrité des fichiers
+
 def calculate_file_hash(file_path, hash_algorithm="md5"):
     hash_func = hashlib.md5() if hash_algorithm == "md5" else hashlib.sha256()
     with open(file_path, "rb") as f:
@@ -32,7 +37,9 @@ def calculate_file_hash(file_path, hash_algorithm="md5"):
             hash_func.update(chunk)
     return hash_func.hexdigest()
 
-# Fonction pour extraire les informations d'un PDF et créer un fichier JSON
+# Fonction pour extraire les informations d'une facture PDF via l'API Mindee
+# Elle crée un fichier JSON contenant les données extraites et l'enregistre dans le stockage défini
+
 def extract_and_create_json(pdf_path, filename):
     try:
         mindee_client = Client(api_key=API_KEY)
@@ -59,7 +66,7 @@ def extract_and_create_json(pdf_path, filename):
     document = api_response.document
     extracted_data = {}
     
-    # Extraire toutes les données disponibles
+    # Extraction des données sous forme de dictionnaire
     for field, value in document.inference.prediction.__dict__.items():
         if isinstance(value, list):
             extracted_data[field] = [
@@ -71,6 +78,7 @@ def extract_and_create_json(pdf_path, filename):
         else:
             extracted_data[field] = value
     
+    # Récupération des informations essentielles pour l'indexation
     partner_name = extracted_data.get("supplier_name") or extracted_data.get("company_name", "Unknown")
     document_date = extracted_data.get("date") or extracted_data.get("invoice_date", "Unknown")
     
@@ -91,6 +99,7 @@ def extract_and_create_json(pdf_path, filename):
     _logger.info(f"Fichier JSON créé : {json_filename}")
     return True, json_filename, INVOICE_STORAGE_PATH, ARCHIVE_DIRECTORY, partner_name, document_date, file_size, file_hash
 
+# Fonction principale pour traiter les fichiers dans le dossier d'entrée
 if __name__ == "__main__":
     if not os.path.exists(INPUT_DIRECTORY):
         _logger.error(f"Le répertoire d'entrée {INPUT_DIRECTORY} n'existe pas.")
@@ -99,12 +108,13 @@ if __name__ == "__main__":
             db = client["voye_db"]
             index_collection = db["index_document"]
             
+            # Parcours des fichiers PDF dans le dossier d'entrée
             for filename in os.listdir(INPUT_DIRECTORY):
                 if filename.lower().endswith(".pdf"):
                     pdf_path = os.path.join(INPUT_DIRECTORY, filename)
                     file_hash = calculate_file_hash(pdf_path, "md5")
                     
-                    # Vérifier si le document est déjà indexé
+                    # Vérification si le fichier est déjà indexé
                     existing_doc = index_collection.find_one({"checksum": file_hash})
                     if existing_doc:
                         _logger.warning(f"Document déjà indexé : {filename} (checksum identique), suppression du fichier.")
