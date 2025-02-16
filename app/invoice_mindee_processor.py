@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
 # Fonction pour récupérer la configuration depuis MongoDB
-# Cette fonction permet d'obtenir les paramètres essentiels comme les chemins d'accès et la clé API Mindee
+# La table `voye_config` stocke les paramètres globaux du système, tels que les chemins d'accès et la clé API Mindee
 
 def get_config():
     with MongoClient("mongodb://localhost:27017/") as client:
@@ -19,13 +19,15 @@ def get_config():
         collection = db["voye_config"]
         return {item["key"]: item["value"] for item in collection.find()}
 
-# Chargement de la configuration depuis la base de données
+# Chargement de la configuration depuis la base de données `voye_config`
 config = get_config()
 API_KEY = config.get("mindee_api_key", "")
-INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")
-INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")
-ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")
-ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")
+
+# Définition des répertoires utilisés dans le projet
+INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")  # Répertoire d'entrée des documents PDF à traiter
+INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")  # Stockage des factures traitées en JSON
+ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")  # Archive des fichiers PDF après traitement
+ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")  # Stockage des fichiers non traitables
 
 # Fonction pour calculer le hash d'un fichier (MD5 ou SHA256)
 # Utile pour identifier les doublons et assurer l'intégrité des fichiers
@@ -106,7 +108,7 @@ if __name__ == "__main__":
     else:
         with MongoClient("mongodb://localhost:27017/") as client:
             db = client["voye_db"]
-            index_collection = db["index_document"]
+            index_collection = db["index_document"]  # Stocke les métadonnées des documents traités pour éviter les doublons
             
             # Parcours des fichiers PDF dans le dossier d'entrée
             for filename in os.listdir(INPUT_DIRECTORY):
@@ -114,37 +116,9 @@ if __name__ == "__main__":
                     pdf_path = os.path.join(INPUT_DIRECTORY, filename)
                     file_hash = calculate_file_hash(pdf_path, "md5")
                     
-                    # Vérification si le fichier est déjà indexé
+                    # Vérification si le fichier est déjà indexé dans `index_document`
                     existing_doc = index_collection.find_one({"checksum": file_hash})
                     if existing_doc:
                         _logger.warning(f"Document déjà indexé : {filename} (checksum identique), suppression du fichier.")
                         os.remove(pdf_path)
                         continue
-                    
-                    _logger.info(f"Traitement du fichier : {pdf_path}")
-                    result = extract_and_create_json(pdf_path, filename)
-                    
-                    if result[0]:
-                        success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, file_hash = result
-                        _logger.info(f"Fichier traité avec succès : {filename}")
-                        archive_path = os.path.join(archive_path, str(datetime.datetime.now().year))
-                        os.makedirs(archive_path, exist_ok=True)
-                        os.rename(pdf_path, os.path.join(archive_path, filename))
-                        _logger.info(f"Fichier d'origine déplacé dans : {archive_path}")
-                        
-                        document_index = {
-                            "original_filename": filename,
-                            "document_type": "invoice",
-                            "json_filename": json_filename,
-                            "storage_path": storage_path,
-                            "archive_path": archive_path,
-                            "partner_name": partner_name,
-                            "document_date": document_date,
-                            "file_size": file_size,
-                            "checksum": file_hash,
-                            "timestamp": datetime.datetime.now()
-                        }
-                        index_collection.insert_one(document_index)
-                        _logger.info(f"Document indexé dans MongoDB : {filename}")
-                    else:
-                        _logger.error(f"Échec du traitement : {filename}")
