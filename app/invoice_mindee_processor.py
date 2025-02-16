@@ -108,7 +108,9 @@ if __name__ == "__main__":
     else:
         with MongoClient("mongodb://localhost:27017/") as client:
             db = client["voye_db"]
-            index_collection = db["index_document"]  # Stocke les métadonnées des documents traités pour éviter les doublons
+            index_collection = db["index_document"]  # index_document est la colone vertébrale du projet 
+            tous les document traités sont indexé dans cette table, chaque document est attaché à un index temporel très précis de leur entré dans le système 
+            elle Stocke les métadonnées des documents traités pour éviter les doublons.
             
             # Parcours des fichiers PDF dans le dossier d'entrée
             for filename in os.listdir(INPUT_DIRECTORY):
