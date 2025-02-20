@@ -6,13 +6,44 @@
     <title>Voye - Interface</title>
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+        }
+        .navbar {
+            height: 25%;
+            width: 100%;
+            background-color: #333;
+            color: white;
+        }
         .horizontal-layout {
             display: flex;
             flex-direction: row;
+            height: 50%;
+            width: 100%;
         }
-        .horizontal-layout .column {
-            flex: 1;
+        .horizontal-layout .json-viewer {
+            flex: 0 0 25%;
+            height: 100%;
             margin: 0 10px;
+            background-color: #f1f1f1;
+        }
+        .horizontal-layout .pdf-viewer {
+            flex: 0 0 50%;
+            height: 100%;
+            margin: 0 10px;
+            background-color: #e2e2e2;
+        }
+        .horizontal-layout .validation {
+            flex: 0 0 25%;
+            height: 100%;
+            margin: 0 10px;
+            background-color: #d3d3d3;
+        }
+        .message-box {
+            height: 25%;
+            width: 100%;
+            background-color: #ccc;
         }
     </style>
 </head>
