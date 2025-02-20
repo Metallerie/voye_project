@@ -58,6 +58,46 @@
             background-color: #ccc;
         }
     </style>
+    <script>
+        let currentIndex = 0;
+        let documents = [];
+
+        async function fetchDocuments() {
+            try {
+                const response = await fetch('/api/get_documents');
+                documents = await response.json();
+                if (documents.length > 0) {
+                    displayDocument(0);
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des documents:', error);
+            }
+        }
+
+        function displayDocument(index) {
+            if (index >= 0 && index < documents.length) {
+                currentIndex = index;
+                const doc = documents[index];
+                document.querySelector('.json-viewer textarea').value = JSON.stringify(doc, null, 2);
+                document.querySelector('.pdf-viewer iframe').src = doc.pdf_path;
+                document.querySelector('.message-box p').textContent = `Document ${index + 1} sur ${documents.length}`;
+            }
+        }
+
+        function nextDocument() {
+            if (currentIndex < documents.length - 1) {
+                displayDocument(currentIndex + 1);
+            }
+        }
+
+        function previousDocument() {
+            if (currentIndex > 0) {
+                displayDocument(currentIndex - 1);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchDocuments);
+    </script>
 </head>
 <body>
     <nav class="navbar">
@@ -70,16 +110,16 @@
     <div class="container horizontal-layout">
         <div class="column json-viewer">
             <h2>📂 JSON Viewer</h2>
-            <textarea></textarea>
+            <textarea readonly></textarea>
         </div>
         <div class="column pdf-viewer">
             <h2>📄 PDF Viewer</h2>
-            <iframe src=""></iframe>
+            <iframe src="" style="width:100%; height:100%;"></iframe>
         </div>
         <div class="column validation">
             <h2>✅ Validation</h2>
-            <button>Bouton 1</button>
-            <button>Bouton 2</button>
+            <button onclick="previousDocument()">Document Précédent</button>
+            <button onclick="nextDocument()">Document Suivant</button>
         </div>
     </div>
     
