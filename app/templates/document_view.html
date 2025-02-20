@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voye - Interface</title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .horizontal-layout {
+            display: flex;
+            flex-direction: row;
+        }
+        .horizontal-layout .column {
+            flex: 1;
+            margin: 0 10px;
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -14,7 +24,7 @@
         </ul>
     </nav>
     
-    <div class="container">
+    <div class="container horizontal-layout">
         <div class="column json-viewer">
             <h2>📂 JSON Viewer</h2>
             <textarea></textarea>
