@@ -80,8 +80,7 @@
                 const doc = documents[index];
                 document.querySelector('.json-viewer textarea').value = JSON.stringify(doc, null, 2);
                 document.querySelector('.pdf-viewer iframe').src = doc.pdf_path;
-                document.querySelector('.message-box p').textContent = `Document ${index + 1} sur ${documents.length}`;
-                document.querySelector('.message-box p').textContent += ` - Nom du document: ${doc.filename}`;
+                document.querySelector('.message-box p').textContent = `Document ${index + 1} sur ${documents.length} - Nom du document: ${doc.filename}`;
             }
         }
 
