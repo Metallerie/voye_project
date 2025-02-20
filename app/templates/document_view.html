@@ -64,7 +64,7 @@
 
         async function fetchDocuments() {
             try {
-                const response = await fetch('/api/get_documents');
+                const response = await fetch('/api/get_documents/');
                 documents = await response.json();
                 if (documents.length > 0) {
                     displayDocument(0);
