@@ -1,22 +1,25 @@
-#!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
-import os
 import sys
-
-
+import os
+# Ajouter le chemin /data/voye au sys.path
+sys.path.append('/data/voye')
 def main():
-    """Run administrative tasks."""
+    """Exécuter les tâches administratives."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'frontend.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
         raise ImportError(
-            "Couldn't import Django. Are you sure it's installed and "
-            "available on your PYTHONPATH environment variable? Did you "
-            "forget to activate a virtual environment?"
+            "Impossible d'importer Django. Êtes-vous sûr qu'il est installé et "
+            "disponible sur votre variable d'environnement PYTHONPATH ? Avez-vous "
+            "oublié d'activer un environnement virtuel ?"
         ) from exc
-    execute_from_command_line(sys.argv)
 
+    # Imprimer la liste des chemins de recherche des modules
+    print("Chemins de recherche des modules :")
+    for path in sys.path:
+        print(path)
+
+    execute_from_command_line(sys.argv)
 
 if __name__ == '__main__':
     main()

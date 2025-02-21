@@ -1,4 +1,7 @@
+<<<<<<< Updated upstream
 from django.shortcuts import render
+=======
+>>>>>>> Stashed changes
 from django.http import JsonResponse
 import subprocess
 import os
@@ -11,6 +14,11 @@ def document_view(request):
 def index(request):
     return render(request, 'index.html')
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 def run_gpt_engineer(request):
     if request.method == 'POST':
         prompt = request.POST.get('prompt', '')
