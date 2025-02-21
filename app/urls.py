@@ -1,6 +1,8 @@
 from django.urls import path
-from .views import document_view  # Assurez-vous que cette ligne est correcte
+from . import views
 
 urlpatterns = [
-    path('document/', document_view, name='document_view'),
+    path('document/', views.document_view, name='document_view'),
+    path('', views.index, name='index'),
+    path('run_gpt/', views.run_gpt_engineer, name='run_gpt'),
 ]
