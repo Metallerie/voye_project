@@ -1,0 +1,39 @@
+[2025-02-22 07:55:58 +0000] [515719] [INFO] Starting gunicorn 23.0.0
+[2025-02-22 07:55:58 +0000] [515719] [INFO] Listening at: http://127.0.0.1:8000 (515719)
+[2025-02-22 07:55:58 +0000] [515719] [INFO] Using worker: sync
+[2025-02-22 07:55:58 +0000] [515720] [INFO] Booting worker with pid: 515720
+[2025-02-22 07:55:58 +0000] [515721] [INFO] Booting worker with pid: 515721
+[2025-02-22 07:55:58 +0000] [515722] [INFO] Booting worker with pid: 515722
+[2025-02-22 08:13:29 +0000] [515719] [INFO] Handling signal: term
+[2025-02-22 08:13:29 +0000] [515720] [INFO] Worker exiting (pid: 515720)
+[2025-02-22 08:13:29 +0000] [515721] [INFO] Worker exiting (pid: 515721)
+[2025-02-22 08:13:29 +0000] [515722] [INFO] Worker exiting (pid: 515722)
+[2025-02-22 08:13:29 +0000] [515719] [INFO] Shutting down: Master
+[2025-02-22 08:13:29 +0000] [518921] [INFO] Starting gunicorn 23.0.0
+[2025-02-22 08:13:29 +0000] [518921] [INFO] Listening at: http://127.0.0.1:8000 (518921)
+[2025-02-22 08:13:29 +0000] [518921] [INFO] Using worker: sync
+[2025-02-22 08:13:29 +0000] [518923] [INFO] Booting worker with pid: 518923
+[2025-02-22 08:13:29 +0000] [518924] [INFO] Booting worker with pid: 518924
+[2025-02-22 08:13:29 +0000] [518925] [INFO] Booting worker with pid: 518925
+[2025-02-22 08:15:39 +0000] [518925] [INFO] Worker exiting (pid: 518925)
+[2025-02-22 08:15:39 +0000] [518923] [INFO] Worker exiting (pid: 518923)
+[2025-02-22 08:15:39 +0000] [518921] [INFO] Handling signal: term
+[2025-02-22 08:15:39 +0000] [518924] [INFO] Worker exiting (pid: 518924)
+[2025-02-22 08:15:40 +0000] [518921] [INFO] Shutting down: Master
+[2025-02-22 08:15:40 +0000] [519342] [INFO] Starting gunicorn 23.0.0
+[2025-02-22 08:15:40 +0000] [519342] [INFO] Listening at: http://127.0.0.1:8000 (519342)
+[2025-02-22 08:15:40 +0000] [519342] [INFO] Using worker: sync
+[2025-02-22 08:15:40 +0000] [519343] [INFO] Booting worker with pid: 519343
+[2025-02-22 08:15:40 +0000] [519344] [INFO] Booting worker with pid: 519344
+[2025-02-22 08:15:40 +0000] [519345] [INFO] Booting worker with pid: 519345
+[2025-02-22 08:30:39 +0000] [519342] [INFO] Handling signal: term
+[2025-02-22 08:30:39 +0000] [519343] [INFO] Worker exiting (pid: 519343)
+[2025-02-22 08:30:39 +0000] [519344] [INFO] Worker exiting (pid: 519344)
+[2025-02-22 08:30:39 +0000] [519345] [INFO] Worker exiting (pid: 519345)
+[2025-02-22 08:30:40 +0000] [519342] [INFO] Shutting down: Master
+[2025-02-22 08:30:40 +0000] [522121] [INFO] Starting gunicorn 23.0.0
+[2025-02-22 08:30:40 +0000] [522121] [INFO] Listening at: http://127.0.0.1:8000 (522121)
+[2025-02-22 08:30:40 +0000] [522121] [INFO] Using worker: sync
+[2025-02-22 08:30:40 +0000] [522123] [INFO] Booting worker with pid: 522123
+[2025-02-22 08:30:41 +0000] [522124] [INFO] Booting worker with pid: 522124
+[2025-02-22 08:30:41 +0000] [522126] [INFO] Booting worker with pid: 522126

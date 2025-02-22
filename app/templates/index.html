@@ -1,0 +1,36 @@
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<textarea id="prompt" rows="10" cols="50" placeholder="Écris ton prompt ici..."></textarea><br><br>
+<button id="run-btn">Lancer GPT-Engineer</button>
+
+<h2>Résultat :</h2>
+<pre id="output"></pre>
+
+<script>
+    $('#run-btn').click(function() {
+        const prompt = $('#prompt').val();
+
+        if (!prompt) {
+            $('#output').text('Erreur : Le prompt est vide.');
+            return;
+        }
+
+        $.ajax({
+            url: '/run_gpt/',
+            type: 'POST',
+            data: {
+                'prompt': prompt,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.status === 'Succès') {
+                    $('#output').text(response.output);
+                } else {
+                    $('#output').text('Erreur : ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#output').text('Erreur serveur : ' + xhr.responseText);
+            }
+        });
+    });
