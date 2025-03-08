@@ -1,0 +1,20 @@
+📌 **Avant de coder, analyse l’architecture actuelle du projet.**  
+    
+1️⃣ **Lis le dernier fichier UML généré** (`docs/project_structure_YYYYMMDD_HHMMSS.puml`).  
+   - Comprends la structure des classes et des relations.
+   - Vérifie l'organisation du code existant.  
+   - Assure-toi que ta modification s’intègre dans cette architecture.  
+
+2️⃣ **Explique-moi brièvement ta compréhension de l'UML.**  
+   - Quels sont les modules et classes principales ?  
+   - Comment interagissent-ils ?  
+
+3️⃣ **Applique ensuite les modifications demandées.**  
+   - Respecte la structure actuelle du projet.  
+   - Ne crée pas de nouvelles classes ou méthodes si elles existent déjà.  
+
+4️⃣ **Une fois le code modifié, génère un nouveau fichier UML mis à jour.**  
+   - Utilise `python scripts/generate_uml.py`.  
+   - Vérifie que le diagramme UML reflète bien tes changements.  
+
+5️⃣ **Si les modifications ne conviennent pas, exécute `python scripts/restore_uml.py` pour revenir à l’ancienne version.**

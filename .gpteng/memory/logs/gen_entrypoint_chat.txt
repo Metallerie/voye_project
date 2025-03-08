@@ -1,0 +1,945 @@
+
+2025-03-02T17:45:47.075011
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: app
+1 django-admin startproject voye_project
+2 cd voye_project
+3 django-admin startapp documents
+
+File: voye_project/settings.py
+1 import os
+2 from pathlib import Path
+3 import json
+4 
+5 # Load MongoDB configuration
+6 with open('/data/voye/mongo_voye_config.json') as f:
+7     mongo_config = json.load(f)
+8 
+9 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+10 BASE_DIR = Path(__file__).resolve().parent.parent
+11 
+12 # Quick-start development settings - unsuitable for production
+13 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
+14 
+15 # SECURITY WARNING: keep the secret key used in production secret!
+16 SECRET_KEY = 'your-secret-key'
+17 
+18 # SECURITY WARNING: don't run with debug turned on in production!
+19 DEBUG = True
+20 
+21 ALLOWED_HOSTS = ['89.47.51.175']
+22 
+23 # Application definition
+24 INSTALLED_APPS = [
+25     'django.contrib.admin',
+26     'django.contrib.auth',
+27     'django.contrib.contenttypes',
+28     'django.contrib.sessions',
+29     'django.contrib.messages',
+30     'django.contrib.staticfiles',
+31     'rest_framework',
+32     'documents',
+33 ]
+34 
+35 MIDDLEWARE = [
+36     'django.middleware.security.SecurityMiddleware',
+37     'django.contrib.sessions.middleware.SessionMiddleware',
+38     'django.middleware.common.CommonMiddleware',
+39     'django.middleware.csrf.CsrfViewMiddleware',
+40     'django.contrib.auth.middleware.AuthenticationMiddleware',
+41     'django.contrib.messages.middleware.MessageMiddleware',
+42     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+43 ]
+44 
+45 ROOT_URLCONF = 'voye_project.urls'
+46 
+47 TEMPLATES = [
+48     {
+49         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+50         'DIRS': [BASE_DIR / 'templates'],
+51         'APP_DIRS': True,
+52         'OPTIONS': {
+53             'context_processors': [
+54                 'django.template.context_processors.debug',
+55                 'django.template.context_processors.request',
+56                 'django.contrib.auth.context_processors.auth',
+57                 'django.contrib.messages.context_processors.messages',
+58             ],
+59         },
+60     },
+61 ]
+62 
+63 WSGI_APPLICATION = 'voye_project.wsgi.application'
+64 
+65 # Database
+66 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+67 
+68 DATABASES = {
+69     'default': {
+70         'ENGINE': 'djongo',
+71         'NAME': mongo_config['database'],
+72         'ENFORCE_SCHEMA': False,
+73         'CLIENT': {
+74             'host': mongo_config['host'],
+75             'port': mongo_config['port'],
+76             'username': mongo_config['username'],
+77             'password': mongo_config['password'],
+78             'authSource': mongo_config['authSource'],
+79             'authMechanism': mongo_config['authMechanism'],
+80         },
+81     }
+82 }
+83 
+84 # Password validation
+85 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+86 
+87 AUTH_PASSWORD_VALIDATORS = [
+88     {
+89         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+90     },
+91     {
+92         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+93     },
+94     {
+95         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+96     },
+97     {
+98         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+99     },
+100 ]
+101 
+102 # Internationalization
+103 # https://docs.djangoproject.com/en/3.2/topics/i18n/
+104 
+105 LANGUAGE_CODE = 'en-us'
+106 
+107 TIME_ZONE = 'UTC'
+108 
+109 USE_I18N = True
+110 
+111 USE_L10N = True
+112 
+113 USE_TZ = True
+114 
+115 # Static files (CSS, JavaScript, Images)
+116 # https://docs.djangoproject.com/en/3.2/howto/static-files/
+117 
+118 STATIC_URL = '/static/'
+119 
+120 # Default primary key field type
+121 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+122 
+123 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+File: documents/serializers.py
+1 from rest_framework import serializers
+2 
+3 class DocumentSerializer(serializers.Serializer):
+4     # Define the fields for the document
+5     id = serializers.CharField(read_only=True)
+6     json_data = serializers.JSONField()
+7     pdf_file = serializers.CharField()
+8     validated = serializers.BooleanField(default=False)
+
+File: documents/views.py
+1 from rest_framework import viewsets, status
+2 from rest_framework.response import Response
+3 from rest_framework.decorators import action
+4 from django.shortcuts import get_object_or_404
+5 from .serializers import DocumentSerializer
+6 from .models import Document
+7 
+8 class DocumentViewSet(viewsets.ViewSet):
+9     """
+10     A simple ViewSet for listing or retrieving documents.
+11     """
+12 
+13     def list(self, request):
+14         queryset = Document.objects.all()
+15         serializer = DocumentSerializer(queryset, many=True)
+16         return Response(serializer.data)
+17 
+18     def retrieve(self, request, pk=None):
+19         queryset = Document.objects.all()
+20         document = get_object_or_404(queryset, pk=pk)
+21         serializer = DocumentSerializer(document)
+22         return Response(serializer.data)
+23 
+24     def create(self, request):
+25         serializer = DocumentSerializer(data=request.data)
+26         if serializer.is_valid():
+27             serializer.save()
+28             return Response(serializer.data, status=status.HTTP_201_CREATED)
+29         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+30 
+31     @action(detail=True, methods=['post'])
+32     def validate(self, request, pk=None):
+33         document = get_object_or_404(Document, pk=pk)
+34         document.validated = True
+35         document.save()
+36         return Response({'status': 'document validated'})
+
+File: documents/models.py
+1 from djongo import models
+2 
+3 class Document(models.Model):
+4     json_data = models.JSONField()
+5     pdf_file = models.CharField(max_length=255)
+6     validated = models.BooleanField(default=False)
+7 
+8     def __str__(self):
+9         return self.pdf_file
+
+File: voye_project/urls.py
+1 from django.contrib import admin
+2 from django.urls import path, include
+3 from rest_framework.routers import DefaultRouter
+4 from documents.views import DocumentViewSet
+5 
+6 router = DefaultRouter()
+7 router.register(r'documents', DocumentViewSet, basename='document')
+8 
+9 urlpatterns = [
+10     path('admin/', admin.site.urls),
+11     path('', include(router.urls)),
+12 ]
+
+File: documents/templates/document_view.html
+1 <!DOCTYPE html>
+2 <html lang="en">
+3 <head>
+4     <meta charset="UTF-8">
+5     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6     <title>Document Validation</title>
+7     <style>
+8         .container {
+9             display: flex;
+10             justify-content: space-between;
+11         }
+12         .column {
+13             width: 30%;
+14             padding: 10px;
+15         }
+16         .validation-buttons {
+17             display: flex;
+18             justify-content: space-between;
+19             margin-top: 20px;
+20         }
+21     </style>
+22 </head>
+23 <body>
+24     <div class="container">
+25         <div class="column" id="json-column">
+26             <h2>JSON Data</h2>
+27             <div id="json-data">
+28                 <!-- JSON data will be loaded here -->
+29             </div>
+30         </div>
+31         <div class="column" id="pdf-column">
+32             <h2>PDF Viewer</h2>
+33             <iframe id="pdf-viewer" width="100%" height="500px"></iframe>
+34             <div class="navigation-buttons">
+35                 <button onclick="previousDocument()">Précédent</button>
+36                 <button onclick="nextDocument()">Suivant</button>
+37             </div>
+38         </div>
+39         <div class="column" id="validation-column">
+40             <h2>Validation</h2>
+41             <div class="validation-buttons">
+42                 <button onclick="integrateDocuments()">Intégrer des nouveaux documents</button>
+43                 <button onclick="validateDocument()">Valider le document</button>
+44             </div>
+45         </div>
+46     </div>
+47     <div id="integration-result">
+48         <!-- Integration result message will be displayed here -->
+49     </div>
+50 
+51     <script>
+52         let currentDocumentIndex = 0;
+53         let documents = [];
+54 
+55         function loadDocuments() {
+56             fetch('/documents/')
+57                 .then(response => response.json())
+58                 .then(data => {
+59                     documents = data;
+60                     displayDocument(currentDocumentIndex);
+61                 });
+62         }
+63 
+64         function displayDocument(index) {
+65             if (documents.length > 0) {
+66                 const document = documents[index];
+67                 document.getElementById('json-data').innerText = JSON.stringify(document.json_data, null, 2);
+68                 document.getElementById('pdf-viewer').src = document.pdf_file;
+69             }
+70         }
+71 
+72         function previousDocument() {
+73             if (currentDocumentIndex > 0) {
+74                 currentDocumentIndex--;
+75                 displayDocument(currentDocumentIndex);
+76             }
+77         }
+78 
+79         function nextDocument() {
+80             if (currentDocumentIndex < documents.length - 1) {
+81                 currentDocumentIndex++;
+82                 displayDocument(currentDocumentIndex);
+83             }
+84         }
+85 
+86         function integrateDocuments() {
+87             fetch('/path/to/invoice_mindee_processor.py')
+88                 .then(response => response.text())
+89                 .then(result => {
+90                     document.getElementById('integration-result').innerText = 'Integration successful';
+91                     loadDocuments();
+92                 })
+93                 .catch(error => {
+94                     document.getElementById('integration-result').innerText = 'Integration failed';
+95                 });
+96         }
+97 
+98         function validateDocument() {
+99             const document = documents[currentDocumentIndex];
+100             fetch(`/documents/${document.id}/validate/`, {
+101                 method: 'POST',
+102             })
+103             .then(response => response.json())
+104             .then(result => {
+105                 document.getElementById('integration-result').innerText = 'Document validated';
+106             })
+107             .catch(error => {
+108                 document.getElementById('integration-result').innerText = 'Validation failed';
+109             });
+110         }
+111 
+112         window.onload = loadDocuments;
+113     </script>
+114 </body>
+115 </html>
+
+File: requirements.txt
+1 Django>=3.2,<4.0
+2 djangorestframework>=3.12,<4.0
+3 djongo>=1.3.6
+4 pymongo>=3.11,<4.0
+
+File: function)
+1 import subprocess
+2 
+3 def integrate_documents():
+4     try:
+5         subprocess.run(['python', '/data/voye/app/invoice_mindee_processor.py'], check=True)
+6         return "Integration successful"
+7     except subprocess.CalledProcessError:
+8         return "Integration failed"
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+#!/bin/bash
+
+# Step a: Install dependencies
+pip install -r requirements.txt
+
+# Step b: Run the Django development server
+python manage.py migrate
+python manage.py runserver
+```
+
+2025-03-02T20:42:31.858151
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: Django
+1 python manage.py startapp voye_app
+
+File: voye/settings.py
+1 import os
+2 from pathlib import Path
+3 
+4 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+5 BASE_DIR = Path(__file__).resolve().parent.parent
+6 
+7 # Quick-start development settings - unsuitable for production
+8 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+9 
+10 # SECURITY WARNING: keep the secret key used in production secret!
+11 SECRET_KEY = 'your-secret-key'
+12 
+13 # SECURITY WARNING: don't run with debug turned on in production!
+14 DEBUG = True
+15 
+16 ALLOWED_HOSTS = []
+17 
+18 # Application definition
+19 INSTALLED_APPS = [
+20     'django.contrib.admin',
+21     'django.contrib.auth',
+22     'django.contrib.contenttypes',
+23     'django.contrib.sessions',
+24     'django.contrib.messages',
+25     'django.contrib.staticfiles',
+26     'rest_framework',
+27     'voye_app',  # Our new app
+28 ]
+29 
+30 MIDDLEWARE = [
+31     'django.middleware.security.SecurityMiddleware',
+32     'django.contrib.sessions.middleware.SessionMiddleware',
+33     'django.middleware.common.CommonMiddleware',
+34     'django.middleware.csrf.CsrfViewMiddleware',
+35     'django.contrib.auth.middleware.AuthenticationMiddleware',
+36     'django.contrib.messages.middleware.MessageMiddleware',
+37     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+38 ]
+39 
+40 ROOT_URLCONF = 'voye.urls'
+41 
+42 TEMPLATES = [
+43     {
+44         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+45         'DIRS': [os.path.join(BASE_DIR, 'templates')],
+46         'APP_DIRS': True,
+47         'OPTIONS': {
+48             'context_processors': [
+49                 'django.template.context_processors.debug',
+50                 'django.template.context_processors.request',
+51                 'django.contrib.auth.context_processors.auth',
+52                 'django.contrib.messages.context_processors.messages',
+53             ],
+54         },
+55     },
+56 ]
+57 
+58 WSGI_APPLICATION = 'voye.wsgi.application'
+59 
+60 # Database
+61 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+62 
+63 DATABASES = {
+64     'default': {
+65         'ENGINE': 'djongo',
+66         'NAME': 'voye_db',
+67         'ENFORCE_SCHEMA': False,
+68         'CLIENT': {
+69             'host': 'mongodb://localhost:27017',
+70             'username': 'your_username',
+71             'password': 'your_password',
+72             'authSource': 'admin',
+73             'authMechanism': 'SCRAM-SHA-1',
+74         }
+75     }
+76 }
+77 
+78 # Password validation
+79 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+80 
+81 AUTH_PASSWORD_VALIDATORS = [
+82     {
+83         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+84     },
+85     {
+86         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+87     },
+88     {
+89         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+90     },
+91     {
+92         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+93     },
+94 ]
+95 
+96 # Internationalization
+97 # https://docs.djangoproject.com/en/4.1/topics/i18n/
+98 
+99 LANGUAGE_CODE = 'en-us'
+100 
+101 TIME_ZONE = 'UTC'
+102 
+103 USE_I18N = True
+104 
+105 USE_TZ = True
+106 
+107 # Static files (CSS, JavaScript, Images)
+108 # https://docs.djangoproject.com/en/4.1/howto/static-files/
+109 
+110 STATIC_URL = 'static/'
+111 
+112 # Default primary key field type
+113 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+114 
+115 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+File: voye_app/models.py
+1 from djongo import models
+2 
+3 class Document(models.Model):
+4     title = models.CharField(max_length=255)
+5     content = models.TextField()
+6     created_at = models.DateTimeField(auto_now_add=True)
+7 
+8     def __str__(self):
+9         return self.title
+
+File: voye_app/views.py
+1 from rest_framework import viewsets
+2 from rest_framework.response import Response
+3 from rest_framework import status
+4 from .models import Document
+5 from .serializers import DocumentSerializer
+6 
+7 class DocumentViewSet(viewsets.ViewSet):
+8     """
+9     A simple ViewSet for listing or retrieving documents.
+10     """
+11 
+12     def list(self, request):
+13         queryset = Document.objects.all()
+14         serializer = DocumentSerializer(queryset, many=True)
+15         return Response(serializer.data)
+16 
+17     def create(self, request):
+18         serializer = DocumentSerializer(data=request.data)
+19         if serializer.is_valid():
+20             serializer.save()
+21             return Response(serializer.data, status=status.HTTP_201_CREATED)
+22         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+23 
+24     def retrieve(self, request, pk=None):
+25         try:
+26             document = Document.objects.get(pk=pk)
+27         except Document.DoesNotExist:
+28             return Response(status=status.HTTP_404_NOT_FOUND)
+29 
+30         serializer = DocumentSerializer(document)
+31         return Response(serializer.data)
+32 
+33     def update(self, request, pk=None):
+34         try:
+35             document = Document.objects.get(pk=pk)
+36         except Document.DoesNotExist:
+37             return Response(status=status.HTTP_404_NOT_FOUND)
+38 
+39         serializer = DocumentSerializer(document, data=request.data)
+40         if serializer.is_valid():
+41             serializer.save()
+42             return Response(serializer.data)
+43         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+44 
+45     def destroy(self, request, pk=None):
+46         try:
+47             document = Document.objects.get(pk=pk)
+48         except Document.DoesNotExist:
+49             return Response(status=status.HTTP_404_NOT_FOUND)
+50 
+51         document.delete()
+52         return Response(status=status.HTTP_204_NO_CONTENT)
+
+File: voye_app/serializers.py
+1 from rest_framework import serializers
+2 from .models import Document
+3 
+4 class DocumentSerializer(serializers.ModelSerializer):
+5     class Meta:
+6         model = Document
+7         fields = ['id', 'title', 'content', 'created_at']
+
+File: voye/urls.py
+1 from django.contrib import admin
+2 from django.urls import path, include
+3 from rest_framework.routers import DefaultRouter
+4 from voye_app.views import DocumentViewSet
+5 
+6 router = DefaultRouter()
+7 router.register(r'documents', DocumentViewSet, basename='document')
+8 
+9 urlpatterns = [
+10     path('admin/', admin.site.urls),
+11     path('api/', include(router.urls)),
+12 ]
+
+File: voye_app/invoice_mindee_processor.py
+1 # Assuming the script is already functional and located at /data/voye/app/invoice_mindee_processor.py
+2 # We will import and use it in our views or wherever necessary.
+
+File: voye_app/templates/document_view.html
+1 <!DOCTYPE html>
+2 <html lang="en">
+3 <head>
+4     <meta charset="UTF-8">
+5     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6     <title>Document View</title>
+7     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+8 </head>
+9 <body>
+10     <h1>Documents</h1>
+11     <div id="document-list">
+12         <!-- Document list will be populated here -->
+13     </div>
+14     <script src="{% static 'js/script.js' %}"></script>
+15 </body>
+16 </html>
+
+File: fin)
+1 STATICFILES_DIRS = [
+2     os.path.join(BASE_DIR, "static"),
+3 ]
+
+File: static/css/style.css
+1 body {
+2     font-family: Arial, sans-serif;
+3 }
+4 
+5 h1 {
+6     color: #333;
+7 }
+8 
+9 #document-list {
+10     margin-top: 20px;
+11 }
+
+File: static/js/script.js
+1 document.addEventListener('DOMContentLoaded', function() {
+2     fetch('/api/documents/')
+3         .then(response => response.json())
+4         .then(data => {
+5             const documentList = document.getElementById('document-list');
+6             data.forEach(doc => {
+7                 const div = document.createElement('div');
+8                 div.textContent = `${doc.title}: ${doc.content}`;
+9                 documentList.appendChild(div);
+10             });
+11         });
+12 });
+
+File: requirements.txt
+1 Django>=4.1,<5.0
+2 djangorestframework>=3.13,<4.0
+3 djongo>=1.3.6
+4 pymongo>=3.12,<4.0
+
+File: dépendances
+1 pip install -r requirements.txt
+
+File: données
+1 python manage.py migrate
+
+File: serveur
+1 python manage.py runserver
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+#!/bin/bash
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run migrations
+python manage.py migrate
+
+# Start the Django development server
+python manage.py runserver
+```
+
+2025-03-02T21:21:26.375511
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: main.py
+1 from cleaner import Cleaner
+2 
+3 def main():
+4     # Chemin du répertoire à nettoyer
+5     directory_path = '/data/voye'
+6     
+7     # Initialiser le nettoyeur
+8     cleaner = Cleaner(directory_path)
+9     
+10     # Exécuter le nettoyage
+11     cleaner.clean()
+12 
+13 if __name__ == "__main__":
+14     main()
+
+File: cleaner.py
+1 import os
+2 from utils import is_unnecessary_file, is_empty_directory
+3 
+4 class Cleaner:
+5     def __init__(self, directory_path: str):
+6         self.directory_path = directory_path
+7 
+8     def clean(self):
+9         # Parcourir tous les fichiers et dossiers dans le répertoire
+10         for root, dirs, files in os.walk(self.directory_path, topdown=False):
+11             # Supprimer les fichiers inutiles
+12             for name in files:
+13                 file_path = os.path.join(root, name)
+14                 if is_unnecessary_file(file_path):
+15                     print(f"Deleting file: {file_path}")
+16                     os.remove(file_path)
+17 
+18             # Supprimer les dossiers vides
+19             for name in dirs:
+20                 dir_path = os.path.join(root, name)
+21                 if is_empty_directory(dir_path):
+22                     print(f"Deleting empty directory: {dir_path}")
+23                     os.rmdir(dir_path)
+
+File: utils.py
+1 import os
+2 
+3 def is_unnecessary_file(file_path: str) -> bool:
+4     # Définir les critères pour un fichier inutile
+5     # Par exemple, les fichiers temporaires ou de sauvegarde
+6     return file_path.endswith(('.tmp', '.bak', '~'))
+7 
+8 def is_empty_directory(directory_path: str) -> bool:
+9     # Vérifier si un dossier est vide
+10     return not os.listdir(directory_path)
+
+File: requirements.txt
+1 pytest
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the main script
+python main.py
+```
+
+2025-03-02T21:44:30.381421
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: projet
+1 /data/voye/voye_app/
+2 │
+3 ├── app.py
+4 ├── config.py
+5 ├── requirements.txt
+6 └── templates/
+7     └── document_view.html
+
+File: /data/voye/voye_app/app.py
+1 from flask import Flask, render_template
+2 import config
+3 
+4 app = Flask(__name__)
+5 
+6 @app.route('/documents')
+7 def document_view():
+8     # Render the HTML template located in the templates directory
+9     return render_template('document_view.html')
+10 
+11 if __name__ == '__main__':
+12     # Run the app with the specified host and port from the config file
+13     app.run(host=config.HOST, port=config.PORT)
+
+File: /data/voye/voye_app/config.py
+1 # Configuration file for the Flask app
+2 
+3 # Host and port configuration
+4 HOST = '89.47.51.175'
+5 PORT = 1999
+
+File: /data/voye/voye_app/templates/document_view.html
+1 <!DOCTYPE html>
+2 <html lang="en">
+3 <head>
+4     <meta charset="UTF-8">
+5     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6     <title>Document View</title>
+7 </head>
+8 <body>
+9     <h1>Welcome to the Document View</h1>
+10     <p>This is the content of the document view page.</p>
+11 </body>
+12 </html>
+
+File: /data/voye/voye_app/requirements.txt
+1 Flask==2.3.2
+
+File: 
+1 python app.py
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+#!/bin/bash
+
+# Navigate to the project directory
+cd /data/voye/voye_app/
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the Flask application
+python app.py
+```
+
+2025-03-03T14:40:49.918340
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+File: fichiers
+1 /data/voye/voye_app/
+2 │
+3 ├── app.py
+4 ├── templates/
+5 │   └── document_view.html
+6 └── requirements.txt
+
+File: /data/voye/voye_app/app.py
+1 from flask import Flask, render_template
+2 
+3 app = Flask(__name__)
+4 
+5 @app.route('/documents')
+6 def document_view():
+7     # Render the HTML template for the document view
+8     return render_template('document_view.html')
+9 
+10 if __name__ == '__main__':
+11     # Run the app on the specified IP and port
+12     app.run(host='89.47.51.175', port=1999)
+
+File: /data/voye/voye_app/templates/document_view.html
+1 <!DOCTYPE html>
+2 <html lang="en">
+3 <head>
+4     <meta charset="UTF-8">
+5     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+6     <title>Document View</title>
+7 </head>
+8 <body>
+9     <h1>Welcome to the Document View</h1>
+10     <p>This is the content of the document view page.</p>
+11 </body>
+12 </html>
+
+File: /data/voye/voye_app/requirements.txt
+1 Flask==2.3.2
+
+File: 
+1 python /data/voye/voye_app/app.py
+
+```
+
+================================== Ai Message ==================================
+
+```bash
+#!/bin/bash
+
+# Navigate to the project directory
+cd /data/voye/voye_app/
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+python app.py
+```
