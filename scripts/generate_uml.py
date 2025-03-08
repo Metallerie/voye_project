@@ -2,7 +2,7 @@ import ast
 import os
 import datetime
 
-def extract_classes_and_methods(file_path):
+def extract_classes_methods_and_attributes(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         tree = ast.parse(f.read())
     
@@ -11,15 +11,18 @@ def extract_classes_and_methods(file_path):
         if isinstance(node, ast.ClassDef):
             class_name = node.name
             methods = [n.name for n in node.body if isinstance(n, ast.FunctionDef)]
-            classes[class_name] = methods
+            attributes = [n.targets[0].attr for n in node.body if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Attribute)]
+            classes[class_name] = {'methods': methods, 'attributes': attributes}
     
     return classes
 
 def generate_plantuml(classes):
     uml = "@startuml\n"
-    for cls, methods in classes.items():
+    for cls, data in classes.items():
         uml += f"class {cls} {{\n"
-        for method in methods:
+        for attr in data['attributes']:
+            uml += f"    - {attr}\n"
+        for method in data['methods']:
             uml += f"    + {method}()\n"
         uml += "}\n"
     uml += "@enduml"
@@ -36,7 +39,7 @@ def main():
         for file in files:
             if file.endswith(".py"):
                 file_path = os.path.join(root, file)
-                classes = extract_classes_and_methods(file_path)
+                classes = extract_classes_methods_and_attributes(file_path)
                 all_classes.update(classes)
     
     uml_content = generate_plantuml(all_classes)
