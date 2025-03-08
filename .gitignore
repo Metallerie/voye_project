@@ -1,3 +1,39 @@
-# Fichiers ignorés
+# 🛑 Dossiers liés à Python et aux environnements virtuels
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
+# 🛑 Logs et fichiers temporaires
+*.log
+*.tmp
+*.swp
+*.swo
+
+# 🛑 Fichiers spécifiques aux bases de données MongoDB
 mongodb_data/
+mongo_backups/
+*.bson
+*.wt
+mongod.lock
+diagnostic.data
+journal
+
+# 🛑 Dossiers de sauvegarde et archives
+backups/
+prompt_backups/
+archive/
+
+
+# 🛑 Fichiers de dépendances (si générés)
+node_modules/
+package-lock.json
+
+# 🛑 Fichiers liés à l'IDE (VSCode, JetBrains)
+.vscode/
+.idea/
+
+# 🛑 Fichiers générés par le système
+.DS_Store
+Thumbs.db
