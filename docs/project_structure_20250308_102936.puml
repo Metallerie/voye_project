@@ -1,0 +1,16 @@
+@startuml
+class DocumentSerializer {
+}
+class Meta {
+}
+class DocumentViewSet {
+    + list()
+    + create()
+    + retrieve()
+    + update()
+    + destroy()
+}
+class Document {
+    + __str__()
+}
+@enduml
