@@ -13,7 +13,7 @@ SECRET_KEY = 'your-secret-key'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["89.47.51.175", "localhost", "127.0.0.1"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -24,9 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'djongo',  # Support pour MongoDB
     'voye_app',  # Our new app
 ]
-
+   
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,10 +68,8 @@ DATABASES = {
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
             'host': 'mongodb://localhost:27017',
-            'username': 'your_username',
-            'password': 'your_password',
-            'authSource': 'admin',
-            'authMechanism': 'SCRAM-SHA-1',
+          
+          
         }
     }
 }

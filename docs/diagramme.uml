@@ -1,0 +1,32 @@
+@startuml
+class Meta {
+}
+class DocumentSerializer {
+}
+class DocumentViewSet {
+    + list(): Response
+    + create(): Response
+    + retrieve(): Response
+    + update(): Response
+    + destroy(): Response
+}
+class Document {
+    - __str__(): str
+}
+class ClassVisitor {
+    + classes: Unknown
+    + relations: Unknown
+    + current_class: Unknown
+    + imports: Unknown
+    + abstract_classes: set
+    - __init__(): Unknown
+    + visit_ImportFrom(): Unknown
+    + visit_ClassDef(): Unknown
+    + visit_FunctionDef(): Unknown
+    + visit_Assign(): Unknown
+    + contains_not_implemented(): Unknown
+    + get_type_annotation(): Unknown
+    + infer_return_type(): Unknown
+}
+ClassVisitor *-- set
+@enduml

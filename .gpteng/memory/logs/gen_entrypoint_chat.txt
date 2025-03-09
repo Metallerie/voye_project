@@ -943,3 +943,138 @@ pip install -r requirements.txt
 # Run the application
 python app.py
 ```
+
+2025-03-09T21:39:47.822581
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+It seems like you forgot to provide the information about the codebase. Could you please provide more details? For example, what language is the codebase written in? What are the dependencies? What parts of the codebase need to be run?
+
+2025-03-09T21:45:13.715223
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+It seems like you forgot to provide the information about the codebase. Could you please provide more details? For example, the programming language used, the package manager, the files to run, etc.
+
+2025-03-09T21:47:45.762154
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+It seems like you forgot to provide the information about the codebase. Could you please provide more details? For example, what programming language is the codebase in? What are the dependencies? What parts of the codebase need to be run?
+
+2025-03-09T21:54:03.660074
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+I'm sorry, but you didn't provide any information about the codebase. Could you please provide more details? For example, what programming language is it in? What are the dependencies? What parts of the codebase need to be run?
+
+2025-03-09T21:58:13.415780
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+It seems like you forgot to provide the information about the codebase. Could you please provide more details? For example, what programming language is the codebase in? What are the dependencies? How is the codebase structured?
