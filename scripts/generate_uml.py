@@ -1,53 +1,92 @@
-import ast
 import os
-import datetime
+import ast
+import argparse
 
-def extract_classes_methods_and_attributes(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
-        tree = ast.parse(f.read())
-    
-    classes = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            class_name = node.name
-            methods = [n.name for n in node.body if isinstance(n, ast.FunctionDef)]
-            attributes = [n.targets[0].attr for n in node.body if isinstance(n, ast.Assign) and isinstance(n.targets[0], ast.Attribute)]
-            classes[class_name] = {'methods': methods, 'attributes': attributes}
-    
-    return classes
+def log(message):
+    print(f"[DEBUG] {message}")
 
-def generate_plantuml(classes):
-    uml = "@startuml\n"
-    for cls, data in classes.items():
-        uml += f"class {cls} {{\n"
-        for attr in data['attributes']:
-            uml += f"    - {attr}\n"
-        for method in data['methods']:
-            uml += f"    + {method}()\n"
-        uml += "}\n"
-    uml += "@enduml"
-    return uml
+class ClassVisitor(ast.NodeVisitor):
+    def __init__(self):
+        self.classes = []
+
+    def visit_ClassDef(self, node):
+        log(f"Analyzing class: {node.name}")
+        class_info = {
+            'name': node.name,
+            'bases': [base.id for base in node.bases if isinstance(base, ast.Name)],
+            'methods': [],
+            'attributes': []
+        }
+        
+        for item in node.body:
+            if isinstance(item, ast.FunctionDef):
+                method_info = {
+                    'name': item.name,
+                    'visibility': 'public' if not item.name.startswith('_') else 'private',
+                    'return_type': 'Unknown'  # Peut être amélioré avec les annotations
+                }
+                log(f"Found method: {method_info}")
+                class_info['methods'].append(method_info)
+            elif isinstance(item, ast.AnnAssign):
+                if isinstance(item.target, ast.Name):
+                    attr_info = {
+                        'name': item.target.id,
+                        'type': item.annotation.id if isinstance(item.annotation, ast.Name) else 'Unknown',
+                        'visibility': 'public' if not item.target.id.startswith('_') else 'private'
+                    }
+                    log(f"Found attribute: {attr_info}")
+                    class_info['attributes'].append(attr_info)
+        
+        self.classes.append(class_info)
+        self.generic_visit(node)
+
+def parse_python_file(filename):
+    log(f"Parsing file: {filename}")
+    with open(filename, 'r', encoding='utf-8') as file:
+        tree = ast.parse(file.read())
+    visitor = ClassVisitor()
+    visitor.visit(tree)
+    return visitor.classes
+
+def analyze_project(directory):
+    log(f"Analyzing project directory: {directory}")
+    project_classes = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith('.py'):
+                filepath = os.path.join(root, file)
+                log(f"Processing file: {filepath}")
+                project_classes.extend(parse_python_file(filepath))
+    return project_classes
+
+def generate_uml(classes, output_file):
+    log(f"Generating UML diagram in: {output_file}")
+    with open(output_file, 'w', encoding='utf-8') as file:
+        file.write('@startuml\n')
+        for cls in classes:
+            file.write(f'class {cls["name"]} {{\n')
+            for attr in cls['attributes']:
+                visibility = '+' if attr['visibility'] == 'public' else '-'
+                file.write(f'    {visibility} {attr["name"]}: {attr["type"]}\n')
+            for method in cls['methods']:
+                visibility = '+' if method['visibility'] == 'public' else '-'
+                file.write(f'    {visibility} {method["name"]}()\n')
+            file.write('}\n')
+            for base in cls['bases']:
+                file.write(f'{cls["name"]} --|> {base}\n')
+        file.write('@enduml\n')
 
 def main():
-    source_dir = "/data/voye/"  # Ajuste ce chemin selon ton projet
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_file = f"/data/voye/docs/project_structure_{timestamp}.puml"
+    parser = argparse.ArgumentParser(description='Génère des diagrammes UML à partir du code source Python.')
+    parser.add_argument('directory', help='Répertoire du projet à analyser')
+    parser.add_argument('-o', '--output', default='diagramme.uml', help='Fichier de sortie pour le diagramme UML')
+    args = parser.parse_args()
     
-    all_classes = {}
-    
-    for root, _, files in os.walk(source_dir):
-        for file in files:
-            if file.endswith(".py"):
-                file_path = os.path.join(root, file)
-                classes = extract_classes_methods_and_attributes(file_path)
-                all_classes.update(classes)
-    
-    uml_content = generate_plantuml(all_classes)
-    
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(uml_content)
-    
-    print(f"✅ UML généré : {output_file}")
+    log("Démarrage de l'analyse...")
+    project_classes = analyze_project(args.directory)
+    log("Analyse terminée, génération du fichier UML...")
+    generate_uml(project_classes, args.output)
+    log("Fichier UML généré avec succès !")
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
