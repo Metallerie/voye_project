@@ -39,7 +39,9 @@ class ClassVisitor(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         if self.current_class is not None:
             return_type = 'Unknown'
-            if node.returns:
+            if node.name == "__str__":
+                return_type = "str"
+            elif node.returns:
                 return_type = self.get_type_annotation(node.returns)
             else:
                 return_type = self.infer_return_type(node)
@@ -66,8 +68,9 @@ class ClassVisitor(ast.NodeVisitor):
                         'type': attr_type,
                         'visibility': 'public' if not target.attr.startswith('_') else 'private'
                     }
-                    log(f"Found attribute: {attr_info}")
-                    self.current_class['attributes'].append(attr_info)
+                    if attr_info not in self.current_class['attributes']:
+                        log(f"Found attribute: {attr_info}")
+                        self.current_class['attributes'].append(attr_info)
         self.generic_visit(node)
 
     def get_type_annotation(self, node):
