@@ -127,6 +127,19 @@ def analyze_project(directory):
                 project_abstract_classes.update(abstract_classes)
     return project_classes, project_relations, project_abstract_classes
 
+def print_text_summary(classes, relations):
+    print("\n[TEXTUAL STRUCTURE]\n")
+    for cls in classes:
+        print(f"Class: {cls['name']}")
+        for attr in cls['attributes']:
+            print(f"  - Attribute: {attr['name']} ({attr['type']})")
+        for method in cls['methods']:
+            print(f"  - Method: {method['name']}() -> {method['return_type']}")
+        print("\n")
+    print("[RELATIONS]\n")
+    for relation in relations:
+        print(relation)
+
 def generate_uml(classes, relations, abstract_classes, output_file):
     log(f"Generating UML diagram in: {output_file}")
     with open(output_file, 'w', encoding='utf-8') as file:
@@ -148,7 +161,7 @@ def generate_uml(classes, relations, abstract_classes, output_file):
         file.write('@enduml\n')
 
 def main():
-    parser = argparse.ArgumentParser(description='Génère des diagrammes UML à partir du code source Python.')
+    parser = argparse.ArgumentParser(description='Génère des diagrammes UML et une vue textuelle du projet Python.')
     parser.add_argument('directory', help='Répertoire du projet à analyser')
     parser.add_argument('-o', '--output', default='diagramme.uml', help='Fichier de sortie pour le diagramme UML')
     args = parser.parse_args()
@@ -158,6 +171,7 @@ def main():
     log("Analyse terminée, génération du fichier UML...")
     generate_uml(project_classes, project_relations, project_abstract_classes, args.output)
     log("Fichier UML généré avec succès !")
+    print_text_summary(project_classes, project_relations)
 
 if __name__ == '__main__':
     main()
