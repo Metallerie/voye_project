@@ -41,6 +41,8 @@ class ClassVisitor(ast.NodeVisitor):
             return_type = 'Unknown'
             if node.returns:
                 return_type = self.get_type_annotation(node.returns)
+            else:
+                return_type = self.infer_return_type(node)
             
             method_info = {
                 'name': node.name,
@@ -75,6 +77,13 @@ class ClassVisitor(ast.NodeVisitor):
             value = self.get_type_annotation(node.value)
             slice_value = self.get_type_annotation(node.slice) if isinstance(node.slice, ast.Name) else '...'
             return f"{value}[{slice_value}]"
+        return 'Unknown'
+
+    def infer_return_type(self, node):
+        for stmt in node.body:
+            if isinstance(stmt, ast.Return):
+                if isinstance(stmt.value, ast.Call) and isinstance(stmt.value.func, ast.Name):
+                    return stmt.value.func.id
         return 'Unknown'
 
 def parse_python_file(filename):
