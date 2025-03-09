@@ -8,6 +8,7 @@ def log(message):
 class ClassVisitor(ast.NodeVisitor):
     def __init__(self):
         self.classes = []
+        self.relations = []
 
     def visit_ClassDef(self, node):
         log(f"Analyzing class: {node.name}")
@@ -18,20 +19,29 @@ class ClassVisitor(ast.NodeVisitor):
             'attributes': []
         }
         
+        for base in class_info['bases']:
+            self.relations.append(f"{node.name} --|> {base}")
+        
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
+                return_type = 'Unknown'
+                if item.returns and isinstance(item.returns, ast.Name):
+                    return_type = item.returns.id
                 method_info = {
                     'name': item.name,
                     'visibility': 'public' if not item.name.startswith('_') else 'private',
-                    'return_type': 'Unknown'  # Peut être amélioré avec les annotations
+                    'return_type': return_type
                 }
                 log(f"Found method: {method_info}")
                 class_info['methods'].append(method_info)
             elif isinstance(item, ast.AnnAssign):
                 if isinstance(item.target, ast.Name):
+                    attr_type = 'Unknown'
+                    if isinstance(item.annotation, ast.Name):
+                        attr_type = item.annotation.id
                     attr_info = {
                         'name': item.target.id,
-                        'type': item.annotation.id if isinstance(item.annotation, ast.Name) else 'Unknown',
+                        'type': attr_type,
                         'visibility': 'public' if not item.target.id.startswith('_') else 'private'
                     }
                     log(f"Found attribute: {attr_info}")
@@ -46,20 +56,23 @@ def parse_python_file(filename):
         tree = ast.parse(file.read())
     visitor = ClassVisitor()
     visitor.visit(tree)
-    return visitor.classes
+    return visitor.classes, visitor.relations
 
 def analyze_project(directory):
     log(f"Analyzing project directory: {directory}")
     project_classes = []
+    project_relations = []
     for root, _, files in os.walk(directory):
         for file in files:
             if file.endswith('.py'):
                 filepath = os.path.join(root, file)
                 log(f"Processing file: {filepath}")
-                project_classes.extend(parse_python_file(filepath))
-    return project_classes
+                classes, relations = parse_python_file(filepath)
+                project_classes.extend(classes)
+                project_relations.extend(relations)
+    return project_classes, project_relations
 
-def generate_uml(classes, output_file):
+def generate_uml(classes, relations, output_file):
     log(f"Generating UML diagram in: {output_file}")
     with open(output_file, 'w', encoding='utf-8') as file:
         file.write('@startuml\n')
@@ -70,10 +83,10 @@ def generate_uml(classes, output_file):
                 file.write(f'    {visibility} {attr["name"]}: {attr["type"]}\n')
             for method in cls['methods']:
                 visibility = '+' if method['visibility'] == 'public' else '-'
-                file.write(f'    {visibility} {method["name"]}()\n')
+                file.write(f'    {visibility} {method["name"]}(): {method["return_type"]}\n')
             file.write('}\n')
-            for base in cls['bases']:
-                file.write(f'{cls["name"]} --|> {base}\n')
+        for relation in relations:
+            file.write(f'{relation}\n')
         file.write('@enduml\n')
 
 def main():
@@ -83,9 +96,9 @@ def main():
     args = parser.parse_args()
     
     log("Démarrage de l'analyse...")
-    project_classes = analyze_project(args.directory)
+    project_classes, project_relations = analyze_project(args.directory)
     log("Analyse terminée, génération du fichier UML...")
-    generate_uml(project_classes, args.output)
+    generate_uml(project_classes, project_relations, args.output)
     log("Fichier UML généré avec succès !")
 
 if __name__ == '__main__':
