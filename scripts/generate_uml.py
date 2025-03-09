@@ -9,6 +9,15 @@ class ClassVisitor(ast.NodeVisitor):
     def __init__(self):
         self.classes = []
         self.relations = []
+        self.current_class = None
+        self.imports = {}
+
+    def visit_ImportFrom(self, node):
+        if node.module:
+            module_name = node.module
+            for alias in node.names:
+                self.imports[alias.name] = module_name
+                log(f"Detected import: {alias.name} from {module_name}")
 
     def visit_ClassDef(self, node):
         log(f"Analyzing class: {node.name}")
@@ -22,33 +31,51 @@ class ClassVisitor(ast.NodeVisitor):
         for base in class_info['bases']:
             self.relations.append(f"{node.name} --|> {base}")
         
-        for item in node.body:
-            if isinstance(item, ast.FunctionDef):
-                return_type = 'Unknown'
-                if item.returns and isinstance(item.returns, ast.Name):
-                    return_type = item.returns.id
-                method_info = {
-                    'name': item.name,
-                    'visibility': 'public' if not item.name.startswith('_') else 'private',
-                    'return_type': return_type
-                }
-                log(f"Found method: {method_info}")
-                class_info['methods'].append(method_info)
-            elif isinstance(item, ast.AnnAssign):
-                if isinstance(item.target, ast.Name):
+        self.current_class = class_info
+        self.generic_visit(node)
+        self.classes.append(class_info)
+        self.current_class = None
+
+    def visit_FunctionDef(self, node):
+        if self.current_class is not None:
+            return_type = 'Unknown'
+            if node.returns:
+                return_type = self.get_type_annotation(node.returns)
+            
+            method_info = {
+                'name': node.name,
+                'visibility': 'public' if not node.name.startswith('_') else 'private',
+                'return_type': return_type
+            }
+            log(f"Found method: {method_info}")
+            self.current_class['methods'].append(method_info)
+        self.generic_visit(node)
+    
+    def visit_Assign(self, node):
+        if self.current_class is not None:
+            for target in node.targets:
+                if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == 'self':
                     attr_type = 'Unknown'
-                    if isinstance(item.annotation, ast.Name):
-                        attr_type = item.annotation.id
+                    if isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name):
+                        attr_type = node.value.func.id
+                        self.relations.append(f"{self.current_class['name']} *-- {attr_type}")
                     attr_info = {
-                        'name': item.target.id,
+                        'name': target.attr,
                         'type': attr_type,
-                        'visibility': 'public' if not item.target.id.startswith('_') else 'private'
+                        'visibility': 'public' if not target.attr.startswith('_') else 'private'
                     }
                     log(f"Found attribute: {attr_info}")
-                    class_info['attributes'].append(attr_info)
-        
-        self.classes.append(class_info)
+                    self.current_class['attributes'].append(attr_info)
         self.generic_visit(node)
+
+    def get_type_annotation(self, node):
+        if isinstance(node, ast.Name):
+            return node.id
+        elif isinstance(node, ast.Subscript):
+            value = self.get_type_annotation(node.value)
+            slice_value = self.get_type_annotation(node.slice) if isinstance(node.slice, ast.Name) else '...'
+            return f"{value}[{slice_value}]"
+        return 'Unknown'
 
 def parse_python_file(filename):
     log(f"Parsing file: {filename}")
