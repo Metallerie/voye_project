@@ -11,6 +11,7 @@ class ClassVisitor(ast.NodeVisitor):
         self.relations = []
         self.current_class = None
         self.imports = {}
+        self.abstract_classes = set()
 
     def visit_ImportFrom(self, node):
         if node.module:
@@ -25,7 +26,8 @@ class ClassVisitor(ast.NodeVisitor):
             'name': node.name,
             'bases': [base.id for base in node.bases if isinstance(base, ast.Name)],
             'methods': [],
-            'attributes': []
+            'attributes': [],
+            'is_abstract': False
         }
         
         for base in class_info['bases']:
@@ -49,8 +51,13 @@ class ClassVisitor(ast.NodeVisitor):
             method_info = {
                 'name': node.name,
                 'visibility': 'public' if not node.name.startswith('_') else 'private',
-                'return_type': return_type
+                'return_type': return_type,
+                'is_abstract': self.contains_not_implemented(node)
             }
+            if method_info['is_abstract']:
+                self.current_class['is_abstract'] = True
+                self.abstract_classes.add(self.current_class['name'])
+            
             log(f"Found method: {method_info}")
             self.current_class['methods'].append(method_info)
         self.generic_visit(node)
@@ -72,6 +79,13 @@ class ClassVisitor(ast.NodeVisitor):
                         log(f"Found attribute: {attr_info}")
                         self.current_class['attributes'].append(attr_info)
         self.generic_visit(node)
+
+    def contains_not_implemented(self, node):
+        for stmt in node.body:
+            if isinstance(stmt, ast.Raise) and isinstance(stmt.exc, ast.Call):
+                if isinstance(stmt.exc.func, ast.Name) and stmt.exc.func.id == "NotImplementedError":
+                    return True
+        return False
 
     def get_type_annotation(self, node):
         if isinstance(node, ast.Name):
@@ -95,28 +109,33 @@ def parse_python_file(filename):
         tree = ast.parse(file.read())
     visitor = ClassVisitor()
     visitor.visit(tree)
-    return visitor.classes, visitor.relations
+    return visitor.classes, visitor.relations, visitor.abstract_classes
 
 def analyze_project(directory):
     log(f"Analyzing project directory: {directory}")
     project_classes = []
     project_relations = []
+    project_abstract_classes = set()
     for root, _, files in os.walk(directory):
         for file in files:
             if file.endswith('.py'):
                 filepath = os.path.join(root, file)
                 log(f"Processing file: {filepath}")
-                classes, relations = parse_python_file(filepath)
+                classes, relations, abstract_classes = parse_python_file(filepath)
                 project_classes.extend(classes)
                 project_relations.extend(relations)
-    return project_classes, project_relations
+                project_abstract_classes.update(abstract_classes)
+    return project_classes, project_relations, project_abstract_classes
 
-def generate_uml(classes, relations, output_file):
+def generate_uml(classes, relations, abstract_classes, output_file):
     log(f"Generating UML diagram in: {output_file}")
     with open(output_file, 'w', encoding='utf-8') as file:
         file.write('@startuml\n')
         for cls in classes:
-            file.write(f'class {cls["name"]} {{\n')
+            if cls['name'] in abstract_classes:
+                file.write(f'interface {cls["name"]} <<interface>> {{\n')
+            else:
+                file.write(f'class {cls["name"]} {{\n')
             for attr in cls['attributes']:
                 visibility = '+' if attr['visibility'] == 'public' else '-'
                 file.write(f'    {visibility} {attr["name"]}: {attr["type"]}\n')
@@ -135,9 +154,9 @@ def main():
     args = parser.parse_args()
     
     log("Démarrage de l'analyse...")
-    project_classes, project_relations = analyze_project(args.directory)
+    project_classes, project_relations, project_abstract_classes = analyze_project(args.directory)
     log("Analyse terminée, génération du fichier UML...")
-    generate_uml(project_classes, project_relations, args.output)
+    generate_uml(project_classes, project_relations, project_abstract_classes, args.output)
     log("Fichier UML généré avec succès !")
 
 if __name__ == '__main__':
