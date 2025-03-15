@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from voye_db.models import IndexDocument
+from voye_app.models.index_document import IndexDocument
 from voye_app.forms import IndexDocumentForm
 
 def document_view(request, pk):
