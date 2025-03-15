@@ -29,5 +29,5 @@
     "key": "default_currency",
     "value": "EUR",
     "description": "Devise par défault"
-  },
+  }
 ]
