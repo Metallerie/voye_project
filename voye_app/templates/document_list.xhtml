@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Liste des Documents</title>
+</head>
+<body>
+    <h1>Liste des Documents</h1>
+    <ul>
+        <li><a href="{% url 'document_view' document.pk %}">{{ document.original_filename }}</a></li>
+        {% for document in documents %}
+            <li><a href="{% url 'document_view' document.pk %}">{{ document.original_filename }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
