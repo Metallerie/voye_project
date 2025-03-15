@@ -1,0 +1,10 @@
+[
+  {
+    "user_id": "admin",
+    "theme": "light",
+    "layout": "right-handed",
+    "language": "fr",
+    "buttons_size": "large",
+    "show_tutorial": true
+  }
+]
