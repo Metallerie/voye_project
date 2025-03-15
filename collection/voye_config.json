@@ -1,1 +1,32 @@
 
+[
+  {
+    "key": "mindee_api_key",
+    "value": "5ff0a5fdc10cdface0221a3c9f778a7d",
+    "description": "Clé API pour Mindee, utilisée pour extraire les données des factures."
+  },
+  {
+    "key": "mindee_api_url",
+    "value": "https://api.mindee.net/v1/products/mindee/invoices/v4/predict",
+    "description": "URL de l'API Mindee pour l'extraction des factures."
+  },
+  {
+    "key": "icu_locale",
+    "value": "fr_FR",
+    "description": "Paramètre de localisation ICU, utilisé pour le format des dates et nombres (ex: fr_FR, en_US)."
+  },
+  {
+    "key": "deepl_api_key",
+    "value": "39f9******f:fx",
+    "url": "https://www.deepl.com/fr/your-account/keys",
+    "description": "Clé API pour DeepL, utilisée pour la traduction automatique des documents."
+  },
+  {
+    "key": "default_language",
+    "value": "fr",
+    "description": "Langue par défaut utilisée dans l'ERP Voye (ex: fr, en, es)."
+  },
+  {
+    "key": "default_currency",
+    "value": "EUR",
+    "description": "Devise par
