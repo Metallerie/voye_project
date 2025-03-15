@@ -1,5 +1,4 @@
 from djongo import models
-from django.urls import reverse
 
 class IndexDocument(models.Model):
     original_filename = models.CharField(max_length=255)
