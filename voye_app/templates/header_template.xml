@@ -3,9 +3,13 @@
     <data>
         <template id="header_template">
             <t t-name="header_template">
-                <header>
-                    <button string="Menu 1" type="action" class="oe_highlight"/>
-                    <button string="Menu 2" type="action"/>
+                <!-- Inclusion des fichiers CSS pour le header -->
+                <link rel="stylesheet" type="text/css" href="/static/css/header_template.css"/>
+                <header class="navbar">
+                    <ul>
+                        <li><a href="#">🏠 Menu 1</a></li>
+                        <li><a href="#">📂 Menu 2</a></li>
+                    </ul>
                 </header>
             </t>
         </template>
