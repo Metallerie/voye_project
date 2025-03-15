@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voye>
+    <data>
+        <!-- Définition de la vue formulaire pour le modèle 'voye_db.index.document' -->
+        <record id="view_document_form" model="ir.ui.view">
+            <field name="name">document.view.form</field>
+            <field name="model">voye_db.index.document</field>
+            <field name="arch" type="xml">
+                <form string="Document">
+                    <!-- Inclusion des fichiers CSS -->
+                    <template>
+                        <link rel="stylesheet" type="text/css" href="/static/css/index_document_view_form.css"/>
+                    </template>
+
+                    <!-- Inclusion du header -->
+                    <t t-call="header_template"/>
+
+                    <!-- Disposition horizontale principale -->
+                    <group>
+                        <group string="JSON Viewer" colspan="1">
+                            <field name="json_data" widget="text" readonly="1"/>
+                        </group>
+                        <group string="PDF Viewer" colspan="2">
+                            <field name="pdf_path" widget="url"/>
+                        </group>
+                        <group string="Validation" colspan="1">
+                            <button string="Document Précédent" type="action" name="previous_document"/>
+                            <button string="Document Suivant" type="action" name="next_document"/>
+                        </group>
+                    </group>
+
+                    <!-- Inclusion de la message-box -->
+                    <t t-call="message_box_template"/>
+                </form>
+            </field>
+        </record>
+    </data>
+</voye>
