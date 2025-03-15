@@ -25,3 +25,7 @@ def next_document(request, pk):
     if next_doc:
         return redirect('document_view', pk=next_doc.pk)
     return redirect('document_view', pk=pk)
+    
+def document_list(request):
+    documents = IndexDocument.objects.all()
+    return render(request, 'voye_app/document_list.html', {'documents': documents})    
