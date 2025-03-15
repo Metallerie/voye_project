@@ -1,52 +1,13 @@
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Document
-from .serializers import DocumentSerializer
+from django.shortcuts import render, get_object_or_404
+from voye_db.models import IndexDocument
+from voye_app.forms import IndexDocumentForm
 
-class DocumentViewSet(viewsets.ViewSet):
-    """
-    A simple ViewSet for listing or retrieving documents.
-    """
-
-    def list(self, request):
-        queryset = Document.objects.all()
-        serializer = DocumentSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def create(self, request):
-        serializer = DocumentSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def retrieve(self, request, pk=None):
-        try:
-            document = Document.objects.get(pk=pk)
-        except Document.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = DocumentSerializer(document)
-        return Response(serializer.data)
-
-    def update(self, request, pk=None):
-        try:
-            document = Document.objects.get(pk=pk)
-        except Document.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        serializer = DocumentSerializer(document, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def destroy(self, request, pk=None):
-        try:
-            document = Document.objects.get(pk=pk)
-        except Document.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
-        document.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+def document_view(request, pk):
+    instance = get_object_or_404(IndexDocument, pk=pk)
+    if request.method == 'POST':
+        form = IndexDocumentForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+    else:
+        form = IndexDocumentForm(instance=instance)
+    return render(request, 'voye_app/document_view.html', {'form': form})
