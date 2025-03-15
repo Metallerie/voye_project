@@ -3,6 +3,8 @@
     <data>
         <template id="message_box_template">
             <t t-name="message_box_template">
+                <!-- Inclusion des fichiers CSS pour la message-box -->
+                <link rel="stylesheet" type="text/css" href="/static/css/message_box_template.css"/>
                 <div class="message-box">
                     <field name="message" readonly="1"/>
                 </div>
