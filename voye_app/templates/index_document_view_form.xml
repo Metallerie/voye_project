@@ -15,7 +15,7 @@
                             <field name="json_data" widget="text" readonly="1"/>
                         </group>
                         <group string="PDF Viewer" colspan="2">
-                            <field name="pdf_path" widget="url"/>
+                            <field name="archive_path" widget="url"/>
                         </group>
                         <group string="Validation" colspan="1">
                             <button string="Document Précédent" type="action" name="previous_document"/>
