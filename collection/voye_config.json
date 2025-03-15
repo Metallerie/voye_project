@@ -1,4 +1,3 @@
-
 [
   {
     "key": "mindee_api_key",
@@ -29,4 +28,6 @@
   {
     "key": "default_currency",
     "value": "EUR",
-    "description": "Devise par
+    "description": "Devise par défault"
+  },
+]
