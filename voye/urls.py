@@ -9,4 +9,6 @@ router.register(r'documents', DocumentViewSet, basename='document')
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
+    path('', include('voye_app.urls')),
+
 ]
