@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voye>
+    <data>
+        <template id="header_template">
+            <t t-name="header_template">
+                <header>
+                    <button string="Menu 1" type="action" class="oe_highlight"/>
+                    <button string="Menu 2" type="action"/>
+                </header>
+            </t>
+        </template>
+    </data>
+</voye>
