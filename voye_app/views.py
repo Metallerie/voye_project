@@ -10,22 +10,22 @@ def document_view(request, pk):
             form.save()
     else:
         form = IndexDocumentForm(instance=instance)
-    return render(request, 'voye_app/document_view.html', {'form': form, 'instance': instance})
+    return render(request, 'voye_app/index_document_view_form.xml', {'form': form, 'instance': instance})
 
 def previous_document(request, pk):
     instance = get_object_or_404(IndexDocument, pk=pk)
     previous_doc = instance.get_previous_document()
     if previous_doc:
-        return redirect('document_view', pk=previous_doc.pk)
-    return redirect('document_view', pk=pk)
+        return redirect('index_document_view', pk=previous_doc.pk)
+    return redirect('index_document_view', pk=pk)
 
 def next_document(request, pk):
     instance = get_object_or_404(IndexDocument, pk=pk)
     next_doc = instance.get_next_document()
     if next_doc:
-        return redirect('document_view', pk=next_doc.pk)
-    return redirect('document_view', pk=pk)
-    
+        return redirect('index_document_view', pk=next_doc.pk)
+    return redirect('index_document_view', pk=pk)
+
 def document_list(request):
     documents = IndexDocument.objects.all()
-    return render(request, 'voye_app/document_list.html', {'documents': documents})    
+    return render(request, 'voye_app/index_document_list.xhtml', {'documents': documents})
