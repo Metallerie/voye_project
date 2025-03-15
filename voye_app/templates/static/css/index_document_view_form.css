@@ -5,36 +5,6 @@ body, html {
     font-family: Arial, sans-serif;
 }
 
-/* Styles pour la barre de navigation */
-.navbar {
-    height: 10%;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.navbar ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-}
-
-.navbar li {
-    margin: 0 20px;
-}
-
-.navbar a {
-    color: white;
-    text-decoration: none;
-}
-
 /* Mise en page horizontale principale */
 .horizontal-layout {
     display: flex;
@@ -61,18 +31,4 @@ body, html {
 
 .horizontal-layout .validation {
     background-color: #d3d3d3;
-}
-
-/* Zone d'affichage des messages */
-.message-box {
-    height: 25%;
-    width: 100%;
-    background-color: #ccc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.message-box p {
-    margin: 0;
 }
