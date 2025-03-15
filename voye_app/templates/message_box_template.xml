@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voye>
+    <data>
+        <template id="message_box_template">
+            <t t-name="message_box_template">
+                <div class="message-box">
+                    <field name="message" readonly="1"/>
+                </div>
+            </t>
+        </template>
+    </data>
+</voye>
