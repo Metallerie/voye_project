@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'djongo',  # Support pour MongoDB
+    'django_extensions',
     'voye_app',  # Our new app
 
 ]
