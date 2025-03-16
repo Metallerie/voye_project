@@ -8,7 +8,11 @@
     <h1>Liste des Documents</h1>
     <ul>
         {% for document in documents %}
-            <li><a href="{% url 'document_view' pk=document.pk %}">{{ document.original_filename }}</a></li>
+            {% if document.pk %}
+                <li><a href="{% url 'document_view' pk=document.pk %}">{{ document.original_filename }}</a></li>
+            {% else %}
+                <li>{{ document.original_filename }} (pas de lien disponible)</li>
+            {% endif %}
         {% endfor %}
     </ul>
 </body>
