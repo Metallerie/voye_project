@@ -11,8 +11,12 @@ def document_view(request, pk):
             form.save()
     else:
         form = IndexDocumentForm(instance=instance)
-    return render(request, 'index_document_view_form.xml', {'form': form, 'instance': instance})
+    
+    # Obtenir le chemin complet du fichier JSON
+    json_path = instance.get_full_json_path()
 
+    return render(request, 'index_document_view_form.xml', {'form': form, 'instance': instance, 'json_path': json_path})
+    
 def previous_document(request, pk):
     instance = get_object_or_404(IndexDocument, pk=pk)
     previous_doc = instance.get_previous_document()
