@@ -11,7 +11,7 @@ def document_view(request, pk):
             form.save()
     else:
         form = IndexDocumentForm(instance=instance)
-    return render(request, 'voye_app/index_document_view_form.xml', {'form': form, 'instance': instance})
+    return render(request, 'index_document_view_form.xml', {'form': form, 'instance': instance})
 
 def previous_document(request, pk):
     instance = get_object_or_404(IndexDocument, pk=pk)
@@ -29,7 +29,7 @@ def next_document(request, pk):
 
 def document_list(request):
     documents = IndexDocument.objects.all()
-    return render(request, 'voye_app/index_document_list.xhtml', {'documents': documents})
+    return render(request, 'index_document_list.xhtml', {'documents': documents})
     
 def hello_world(request):
     return HttpResponse("Hello World")
