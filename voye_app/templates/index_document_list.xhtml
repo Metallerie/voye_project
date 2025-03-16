@@ -8,8 +8,8 @@
     <h1>Liste des Documents</h1>
     <ul>
         {% for document in documents %}
-            {% if document._id %}
-                <li><a href="{% url 'document_view' pk=document._id %}">{{ document.original_filename }}</a></li>
+            {% if document.get_id %}
+                <li><a href="{% url 'document_view' pk=document.get_id %}">{{ document.original_filename }}</a></li>
             {% else %}
                 <li>{{ document.original_filename }} (pas de lien disponible)</li>
             {% endif %}
