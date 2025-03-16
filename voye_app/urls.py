@@ -8,8 +8,8 @@ urlpatterns = [
     path('document/<int:pk>/previous/', previous_document, name='previous_document'),
     path('document/<int:pk>/next/', next_document, name='next_document'),
 #    path('documents/', document_list, name='document_list'),
-    path('documents/', views.document_list, name='document_list'),
-    path('document/<str:pk>/', views.document_view, name='document_view'),
+    path('documents/', document_list, name='document_list'),
+    path('document/<str:pk>/', document_view, name='document_view'),
  
     path('hello-world/', hello_world, name='hello_world'),
 ]
