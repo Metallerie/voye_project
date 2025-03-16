@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from voye_app.models.index_document import IndexDocument
 from voye_app.forms import IndexDocumentForm
@@ -31,4 +32,4 @@ def document_list(request):
     return render(request, 'voye_app/index_document_list.xhtml', {'documents': documents})
     
 def hello_world(request):
-    return render(request, 'voye_app/hello_world.xhtml')
+    return HttpResponse("Hello World")
