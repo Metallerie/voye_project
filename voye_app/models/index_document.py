@@ -16,6 +16,9 @@ class IndexDocument(models.Model):
 
     class Meta:
         db_table = 'index_document'
+  
+    def get_id(self):
+        return str(self._id)
         
     def get_full_json_path(self):
         return f"{self.storage_path_json.rstrip('/')}/{self.json_filename['path']}" if 'path' in self.json_filename else None        
