@@ -29,3 +29,6 @@ def next_document(request, pk):
 def document_list(request):
     documents = IndexDocument.objects.all()
     return render(request, 'voye_app/index_document_list.xhtml', {'documents': documents})
+    
+def hello_world(request):
+    return render(request, 'voye_app/hello_world.xhtml')
