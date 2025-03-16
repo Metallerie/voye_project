@@ -7,9 +7,8 @@
 <body>
     <h1>Liste des Documents</h1>
     <ul>
-        <li><a href="{% url 'document_view' document.pk %}">{{ document.original_filename }}</a></li>
         {% for document in documents %}
-            <li><a href="{% url 'document_view' document.pk %}">{{ document.original_filename }}</a></li>
+            <li><a href="{% url 'document_view' original_filename=document.original_filename %}">{{ document.original_filename }}</a></li>
         {% endfor %}
     </ul>
 </body>
