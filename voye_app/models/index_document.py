@@ -15,8 +15,8 @@ class IndexDocument(models.Model):
     class Meta:
         db_table = 'index_document'
 
-    def get_previous_document(self):
-        return IndexDocument.objects.filter(id__lt=self.id).order_by('-id').first()
+     def get_previous_document(self):
+        return IndexDocument.objects.filter(pk__lt=self.pk).order_by('-pk').first()
 
     def get_next_document(self):
-        return IndexDocument.objects.filter(id__gt=self.id).order_by('id').first()
+        return IndexDocument.objects.filter(pk__gt=self.pk).order_by('pk').first()
