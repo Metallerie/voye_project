@@ -26,7 +26,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'djongo',  # Support pour MongoDB
     'voye_app',  # Our new app
-    'voye_db',
 
 ]
    
