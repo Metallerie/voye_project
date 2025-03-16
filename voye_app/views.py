@@ -11,7 +11,7 @@ def document_view(request):
             form.save()
     else:
         form = IndexDocumentForm(instance=instance)
-    return render(request, 'index_document_view_form.xml', {'form': form, 'instance': instance})
+    return render(request, 'index_document_view_form.xhtml', {'form': form, 'instance': instance})
 
 def previous_document(request):
     instance = IndexDocument.objects.first()  # Exemple : Utilisation du premier document trouvé
