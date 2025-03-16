@@ -1078,3 +1078,57 @@ Information about the codebase:
 ================================== Ai Message ==================================
 
 It seems like you forgot to provide the information about the codebase. Could you please provide more details? For example, what programming language is the codebase in? What are the dependencies? How is the codebase structured?
+
+2025-03-10T20:48:51.733369
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+I'm sorry, but you didn't provide any information about the codebase. Could you please provide more details? For example, what language is the codebase written in? What are the dependencies? What parts of the codebase need to be run?
+
+2025-03-10T20:50:18.183073
+================================ System Message ================================
+
+You will get information about a codebase that is currently on disk in the current folder.
+The user will ask you to write a script that runs the code in a specific way.
+You will answer with code blocks that include all the necessary terminal commands.
+Do not install globally. Do not use sudo.
+Do not explain the code, just give the commands.
+Do not use placeholders, use example values (like . for a folder argument) if necessary.
+
+
+================================ Human Message =================================
+
+
+        Make a unix script that
+        a) installs dependencies
+        b) runs all necessary parts of the codebase (in parallel if necessary)
+        
+Information about the codebase:
+
+```
+```
+
+================================== Ai Message ==================================
+
+I'm sorry, but you didn't provide any specific information about the codebase. Could you please provide more details? For example, what programming language is it written in? What are the dependencies? What parts of the codebase need to be run?

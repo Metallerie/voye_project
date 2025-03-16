@@ -1,1 +1,173 @@
-Le fichier UML est ici : /data/voye/docs/diagramme.uml. Analyse ce fichier en priorité.
+
+lis le code de cette aplication est donne moi ton analyse en français
+
+tree -l 3 /data/voye
+3  [error opening dir]
+/data/voye
+├── Django
+├── __init__.py
+├── access.log
+├── archive
+│   └── invoice
+├── backups
+│   ├── index_document.json
+│   └── voye_config.json
+├── docs
+│   ├── diagramme.png
+│   ├── diagramme.uml
+│   ├── project_structure_20250308_100927.puml
+│   └── project_structure_20250308_102936.puml
+├── données
+├── dépendances
+├── error.log
+├── filestore
+│   ├── account
+│   │   ├── factures
+│   │   │   └── 2025
+│   │   └── invoice
+│   ├── partner
+│   │   └── library
+│   │       └── CCL_supplier_library.json
+│   ├── product
+│   └── user
+├── frontend
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── __init__.py
+│   │   ├── asgi.cpython-312.pyc
+│   │   ├── settings.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── wsgi.cpython-312.pyc
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── incoming_documents
+│   ├── 0d64c4f0-4bdd-4d07-95c4-38437046278f.pdf
+│   ├── 6601_KBIS_2022A00423.PDF
+│   ├── FAC_2024_00025.pdf
+│   ├── Mon_ticket_de_caisse_24012025-143651.pdf
+│   ├── RIB_2024.pdf
+│   └── document_error
+├── manage.py
+├── mongo_backups
+├── mongodb_data
+│   ├── WiredTiger
+│   ├── WiredTiger.lock
+│   ├── WiredTiger.turtle
+│   ├── WiredTiger.wt
+│   ├── WiredTigerHS.wt
+│   ├── _mdb_catalog.wt
+│   ├── collection-0--7946645930850285089.wt
+│   ├── collection-11--7946645930850285089.wt
+│   ├── collection-14--7946645930850285089.wt
+│   ├── collection-18--7946645930850285089.wt
+│   ├── collection-2--7946645930850285089.wt
+│   ├── collection-21--7946645930850285089.wt
+│   ├── collection-25--7946645930850285089.wt
+│   ├── collection-28--7946645930850285089.wt
+│   ├── collection-32--7946645930850285089.wt
+│   ├── collection-35--7946645930850285089.wt
+│   ├── collection-4--7946645930850285089.wt
+│   ├── collection-49--7946645930850285089.wt
+│   ├── collection-54--7946645930850285089.wt
+│   ├── collection-58--7946645930850285089.wt
+│   ├── collection-7--7946645930850285089.wt
+│   ├── diagnostic.data  [error opening dir]
+│   ├── index-1--7946645930850285089.wt
+│   ├── index-10--7946645930850285089.wt
+│   ├── index-12--7946645930850285089.wt
+│   ├── index-13--7946645930850285089.wt
+│   ├── index-15--7946645930850285089.wt
+│   ├── index-16--7946645930850285089.wt
+│   ├── index-17--7946645930850285089.wt
+│   ├── index-19--7946645930850285089.wt
+│   ├── index-20--7946645930850285089.wt
+│   ├── index-22--7946645930850285089.wt
+│   ├── index-23--7946645930850285089.wt
+│   ├── index-24--7946645930850285089.wt
+│   ├── index-26--7946645930850285089.wt
+│   ├── index-27--7946645930850285089.wt
+│   ├── index-29--7946645930850285089.wt
+│   ├── index-3--7946645930850285089.wt
+│   ├── index-30--7946645930850285089.wt
+│   ├── index-31--7946645930850285089.wt
+│   ├── index-33--7946645930850285089.wt
+│   ├── index-34--7946645930850285089.wt
+│   ├── index-36--7946645930850285089.wt
+│   ├── index-37--7946645930850285089.wt
+│   ├── index-38--7946645930850285089.wt
+│   ├── index-39--7946645930850285089.wt
+│   ├── index-40--7946645930850285089.wt
+│   ├── index-41--7946645930850285089.wt
+│   ├── index-42--7946645930850285089.wt
+│   ├── index-43--7946645930850285089.wt
+│   ├── index-44--7946645930850285089.wt
+│   ├── index-45--7946645930850285089.wt
+│   ├── index-46--7946645930850285089.wt
+│   ├── index-47--7946645930850285089.wt
+│   ├── index-48--7946645930850285089.wt
+│   ├── index-5--7946645930850285089.wt
+│   ├── index-50--7946645930850285089.wt
+│   ├── index-51--7946645930850285089.wt
+│   ├── index-52--7946645930850285089.wt
+│   ├── index-53--7946645930850285089.wt
+│   ├── index-55--7946645930850285089.wt
+│   ├── index-56--7946645930850285089.wt
+│   ├── index-57--7946645930850285089.wt
+│   ├── index-59--7946645930850285089.wt
+│   ├── index-6--7946645930850285089.wt
+│   ├── index-8--7946645930850285089.wt
+│   ├── index-9--7946645930850285089.wt
+│   ├── journal  [error opening dir]
+│   ├── mongod.lock
+│   ├── sizeStorer.wt
+│   └── storage.bson
+├── prompt.txt
+├── prompt_backups
+│   ├── prompt_2
+│   ├── prompt_20250303_144020.txt
+│   └── prompt_20250303_152743.txt
+├── requirements.txt
+├── run.sh
+├── scripts
+│   ├── __init__.py
+│   ├── generate_uml.py
+│   ├── packages.microsoft.gpg
+│   ├── restore_uml.py
+│   ├── run_gpt_engineer.py
+│   └── update_init.py
+├── serveur
+├── static
+│   ├── css
+│   │   └── style.css
+│   └── js
+│       └── script.js
+├── voye
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── settings.cpython-312.pyc
+│   │   ├── urls.cpython-312.pyc
+│   │   └── wsgi.cpython-312.pyc
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+└── voye_app
+    ├── __init__.py
+    ├── __pycache__
+    │   ├── __init__.cpython-312.pyc
+    │   ├── models.cpython-312.pyc
+    │   ├── serializers.cpython-312.pyc
+    │   └── views.cpython-312.pyc
+    ├── invoice_mindee_processor.py
+    ├── models.py
+    ├── serializers.py
+    ├── templates
+    │   ├── __init__.py
+    │   └── document_view.html
+    └── views.py
+
+32 directories, 133 files
+
