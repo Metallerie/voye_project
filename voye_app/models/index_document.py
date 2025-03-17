@@ -2,7 +2,7 @@ from djongo import models
 from bson import ObjectId
 
 class IndexDocument(models.Model):
-    _id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
+    id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
     original_filename = models.CharField(max_length=255)
     document_type = models.CharField(max_length=100)
     json_filename = models.JSONField()
