@@ -1,5 +1,26 @@
 [
   {
+    "key": "error_directory",
+    "value": "/data/voye/document/document_error/",
+    "description": "Stockage des fichiers non traitables."
+  },
+  {
+    "key": "archive_directory",
+    "value": "/data/voye/archive/invoice/",
+    "description": "Archive des fichiers PDF après traitement."
+  },
+  
+  {
+    "key": "invoice_storage_path",
+    "value": "/data/voye/filestore/account/invoice/",
+    "description": "Stockage des factures traitées en JSON."
+  },
+  {
+    "key": "input_directory",
+    "value": "/data/voye/incoming_documents/",
+    "description": "Répertoire d'entrée des documents PDF à traiter."
+  },
+  {
     "key": "mindee_api_key",
     "value": "5ff0a5fdc10cdface0221a3c9f778a7d",
     "description": "Clé API pour Mindee, utilisée pour extraire les données des factures."
