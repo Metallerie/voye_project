@@ -4,22 +4,22 @@ import logging
 import datetime
 import hashlib
 from mindee import Client, product
-from pymongo import MongoClient
+from django.conf import settings
+from django.db import models
+from djongo import models as djongo_models
+from bson import ObjectId
+from voye_app.models import IndexDocument, VoyeConfig
 
 # Configuration du logger pour afficher les messages d'information et d'erreur
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
 
-# Fonction pour récupérer la configuration depuis MongoDB
-# La table `voye_config` stocke les paramètres globaux du système, tels que les chemins d'accès et la clé API Mindee
-
+# Fonction pour récupérer la configuration depuis Django ORM
 def get_config():
-    with MongoClient("mongodb://localhost:27017/") as client:
-        db = client["voye_db"]
-        collection = db["voye_config"]
-        return {item["key"]: item["value"] for item in collection.find()}
+    config = VoyeConfig.objects.all()
+    return {item.key: item.value for item in config}
 
-# Chargement de la configuration depuis la base de données `voye_config`
+# Chargement de la configuration depuis la base de données `VoyeConfig`
 config = get_config()
 API_KEY = config.get("mindee_api_key", "")
 
@@ -30,8 +30,6 @@ ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/
 ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")  # Stockage des fichiers non traitables
 
 # Fonction pour calculer le hash d'un fichier (MD5 ou SHA256)
-# Utile pour identifier les doublons et assurer l'intégrité des fichiers
-
 def calculate_file_hash(file_path, hash_algorithm="md5"):
     hash_func = hashlib.md5() if hash_algorithm == "md5" else hashlib.sha256()
     with open(file_path, "rb") as f:
@@ -40,8 +38,6 @@ def calculate_file_hash(file_path, hash_algorithm="md5"):
     return hash_func.hexdigest()
 
 # Fonction pour extraire les informations d'une facture PDF via l'API Mindee
-# Elle crée un fichier JSON contenant les données extraites et l'enregistre dans le stockage défini
-
 def extract_and_create_json(pdf_path, filename):
     try:
         mindee_client = Client(api_key=API_KEY)
@@ -80,7 +76,6 @@ def extract_and_create_json(pdf_path, filename):
         else:
             extracted_data[field] = value
     
-    # Récupération des informations essentielles pour l'indexation
     partner_name = extracted_data.get("supplier_name") or extracted_data.get("company_name", "Unknown")
     document_date = extracted_data.get("date") or extracted_data.get("invoice_date", "Unknown")
     
@@ -103,24 +98,42 @@ def extract_and_create_json(pdf_path, filename):
 
 # Fonction principale pour traiter les fichiers dans le dossier d'entrée
 if __name__ == "__main__":
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'voye_project.settings')
+    import django
+    django.setup()
+
     if not os.path.exists(INPUT_DIRECTORY):
         _logger.error(f"Le répertoire d'entrée {INPUT_DIRECTORY} n'existe pas.")
     else:
-        with MongoClient("mongodb://localhost:27017/") as client:
-            db = client["voye_db"]
-            index_collection = db["index_document"]  # index_document est la colone vertébrale du projet 
-            tous les document traités sont indexé dans cette table, chaque document est attaché à un index temporel très précis de leur entré dans le système 
-            elle Stocke les métadonnées des documents traités pour éviter les doublons.
-            
-            # Parcours des fichiers PDF dans le dossier d'entrée
-            for filename in os.listdir(INPUT_DIRECTORY):
-                if filename.lower().endswith(".pdf"):
-                    pdf_path = os.path.join(INPUT_DIRECTORY, filename)
-                    file_hash = calculate_file_hash(pdf_path, "md5")
+        # Parcours des fichiers PDF dans le dossier d'entrée
+        for filename in os.listdir(INPUT_DIRECTORY):
+            if filename.lower().endswith(".pdf"):
+                pdf_path = os.path.join(INPUT_DIRECTORY, filename)
+                file_hash = calculate_file_hash(pdf_path, "md5")
+                
+                # Vérification si le fichier est déjà indexé dans `IndexDocument`
+                if IndexDocument.objects.filter(checksum=file_hash).exists():
+                    _logger.warning(f"Document déjà indexé : {filename} (checksum identique), suppression du fichier.")
+                    os.remove(pdf_path)
+                    continue
+                
+                success, json_filename, storage_path, archive_path, partner_name, document_date, file_size, checksum = extract_and_create_json(pdf_path, filename)
+                
+                if success:
+                    IndexDocument.objects.create(
+                        original_filename=filename,
+                        document_type="invoice",
+                        json_filename={"path": json_filename},
+                        storage_path_json=storage_path,
+                        archive_path_pdf=archive_path,
+                        partner_name=partner_name,
+                        document_date=document_date,
+                        file_size=file_size,
+                        checksum=checksum,
+                        timestamp=datetime.datetime.now()
+                    )
                     
-                    # Vérification si le fichier est déjà indexé dans `index_document`
-                    existing_doc = index_collection.find_one({"checksum": file_hash})
-                    if existing_doc:
-                        _logger.warning(f"Document déjà indexé : {filename} (checksum identique), suppression du fichier.")
-                        os.remove(pdf_path)
-                        continue
+                    # Déplacer le fichier PDF traité vers le répertoire d'archive
+                    os.makedirs(ARCHIVE_DIRECTORY, exist_ok=True)
+                    os.rename(pdf_path, os.path.join(ARCHIVE_DIRECTORY, filename))
+                    _logger.info(f"Document archivé : {filename}")
