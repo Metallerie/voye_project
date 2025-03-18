@@ -1,7 +1,6 @@
 from djongo import models
 from bson import ObjectId
 
-
 class VoyeConfig(models.Model):
     id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
     key = models.CharField(max_length=255)
