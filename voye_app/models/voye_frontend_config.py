@@ -14,4 +14,4 @@ class FrontendConfig(models.Model):
     write_date = models.DateTimeField(auto_now=True)
 
  class Meta:
-    db_table = 'index_document'
+    db_table = 'voye_frontend_config'
