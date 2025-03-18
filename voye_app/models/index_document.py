@@ -1,5 +1,6 @@
 from djongo import models
 from bson import ObjectId
+from django.utils import timezone
 
 class IndexDocument(models.Model):
     id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
