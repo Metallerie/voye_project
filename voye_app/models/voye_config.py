@@ -3,7 +3,7 @@ from bson import ObjectId
 
 
 class VoyeConfig(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
     key = models.CharField(max_length=255)
     value = models.TextField()
     description = models.TextField(blank=True, null=True)
