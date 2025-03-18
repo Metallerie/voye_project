@@ -1,5 +1,7 @@
 import os
 import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import json
 import logging
 import datetime
@@ -11,7 +13,6 @@ from djongo import models as djongo_models
 from bson import ObjectId
 from voye_app.models import IndexDocument, VoyeConfig
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Configuration du logger pour afficher les messages d'information et d'erreur
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
