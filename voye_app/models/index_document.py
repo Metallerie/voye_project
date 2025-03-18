@@ -13,13 +13,12 @@ class IndexDocument(models.Model):
     file_size = models.IntegerField()
     checksum = models.CharField(max_length=64)
     timestamp = models.DateTimeField()
-
+    create_date = models.DateTimeField(auto_now_add=True)
+    write_date = models.DateTimeField(auto_now=True)
+ 
     class Meta:
         db_table = 'index_document'
   
-    def get_id(self):
-        return str(self._id)
-        
     def get_full_json_path(self):
         return f"{self.storage_path_json.rstrip('/')}/{self.json_filename['path']}" if 'path' in self.json_filename else None        
     def get_previous_document(self):
