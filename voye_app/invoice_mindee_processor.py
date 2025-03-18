@@ -24,7 +24,7 @@ config = get_config()
 API_KEY = config.get("mindee_api_key", "")
 
 # Définition des répertoires utilisés dans le projet
-INPUT_DIRECTORY = config.get("input_directory", "/data/voye/document/")  # Répertoire d'entrée des documents PDF à traiter
+INPUT_DIRECTORY = config.get("input_directory", "/data/voye/incoming_documents/")  # Répertoire d'entrée des documents PDF à traiter
 INVOICE_STORAGE_PATH = config.get("invoice_storage_path", "/data/voye/filestore/account/invoice/")  # Stockage des factures traitées en JSON
 ARCHIVE_DIRECTORY = config.get("archive_directory", "/data/voye/archive/invoice/")  # Archive des fichiers PDF après traitement
 ERROR_DIRECTORY = config.get("error_directory", "/data/voye/document/document_error/")  # Stockage des fichiers non traitables
