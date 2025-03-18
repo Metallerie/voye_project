@@ -14,8 +14,8 @@ class IndexDocument(models.Model):
     file_size = models.IntegerField()
     checksum = models.CharField(max_length=255, default='default_value')  # Définir une valeur par défaut appropriée
     timestamp = models.DateTimeField()
-    create_date = models.DateTimeField(auto_now_add=True)
-    write_date = models.DateTimeField(auto_now=True)
+    write_date = models.DateTimeField(auto_now=True,  blank=True, null=True)
+    create_date = models.DateTimeField(auto_now_add=True, blank=True, null=True)
 
     class Meta:
         db_table = 'index_document'
