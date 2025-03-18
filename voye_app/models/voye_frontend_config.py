@@ -2,7 +2,7 @@
 from django.db import models
 from bson import ObjectId
 
-class FrontendConfig(models.Model):
+class VoyeFrontendConfig(models.Model):
     id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
     user_id = models.CharField(max_length=255)
     theme = models.CharField(max_length=50)
