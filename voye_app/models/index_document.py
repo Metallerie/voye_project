@@ -11,7 +11,7 @@ class IndexDocument(models.Model):
     partner_name = models.CharField(max_length=255)
     document_date = models.DateField()
     file_size = models.IntegerField()
-    checksum = models.CharField(max_length=64)
+    checksum = models.CharField(max_length=255, default='default_value')  # Définir une valeur par défaut appropriée
     timestamp = models.DateTimeField()
     create_date = models.DateTimeField(auto_now_add=True)
     write_date = models.DateTimeField(auto_now=True)
