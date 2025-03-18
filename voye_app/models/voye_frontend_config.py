@@ -13,5 +13,5 @@ class VoyeFrontendConfig(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     write_date = models.DateTimeField(auto_now=True)
 
- class Meta:
+class Meta:
     db_table = 'voye_frontend_config'
