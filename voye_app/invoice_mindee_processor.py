@@ -1,18 +1,20 @@
 import os
 import sys
+import django
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'voye_project.settings')
+django.setup()
 
 import json
 import logging
 import datetime
 import hashlib
 from mindee import Client, product
-from django.conf import settings
 from django.db import models
 from djongo import models as djongo_models
 from bson import ObjectId
 from voye_app.models import IndexDocument, VoyeConfig
-
 # Configuration du logger pour afficher les messages d'information et d'erreur
 logging.basicConfig(level=logging.INFO)
 _logger = logging.getLogger(__name__)
