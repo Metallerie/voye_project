@@ -17,5 +17,5 @@ class VoyeConfigForm(forms.ModelForm):
 
 class FrontendConfigForm(forms.ModelForm):
     class Meta:
-        model = FrontendConfig
+        model = VoyeFrontendConfig
         fields = '__all__'
