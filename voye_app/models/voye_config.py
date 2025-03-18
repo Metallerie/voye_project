@@ -12,5 +12,6 @@ class Voye_Config(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     write_date = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.key
+class Meta:
+    db_table = 'index_document'
+  
