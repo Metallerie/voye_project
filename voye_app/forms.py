@@ -1,6 +1,6 @@
 from django import forms
 from django_json_widget.widgets import JSONEditorWidget
-from voye_app.models import IndexDocument, VoyeConfig, FrontendConfig
+from voye_app.models import IndexDocument, VoyeConfig, VoyeFrontendConfig
 
 class IndexDocumentForm(forms.ModelForm):
     class Meta:
