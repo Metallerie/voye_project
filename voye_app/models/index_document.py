@@ -7,7 +7,7 @@ class IndexDocument(models.Model):
     document_type = models.CharField(max_length=100)
     json_filename = models.JSONField()
     storage_path_json = models.CharField(max_length=255)
-    archive_path_pdf = models.CharField(max_length=255)
+    archive_path_pdf = models.CharField(max_length=255, default='default_value')  # Set your desired default value here
     partner_name = models.CharField(max_length=255)
     document_date = models.DateField()
     file_size = models.IntegerField()
