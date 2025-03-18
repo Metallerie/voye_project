@@ -1,5 +1,5 @@
 #https://github.com/Metallerie/voye_project/blob/voye_01/collection/voye_frontend_config.json
-from django.db import models
+from django import models
 from bson import ObjectId
 
 class VoyeFrontendConfig(models.Model):
