@@ -3,7 +3,7 @@ from django.db import models
 from bson import ObjectId
 
 class FrontendConfig(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
     user_id = models.CharField(max_length=255)
     theme = models.CharField(max_length=50)
     layout = models.CharField(max_length=50)
