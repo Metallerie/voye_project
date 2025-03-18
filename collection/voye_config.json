@@ -9,7 +9,6 @@
     "value": "/data/voye/archive/invoice/",
     "description": "Archive des fichiers PDF après traitement."
   },
-  
   {
     "key": "invoice_storage_path",
     "value": "/data/voye/filestore/account/invoice/",
