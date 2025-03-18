@@ -1,5 +1,6 @@
 #https://github.com/Metallerie/voye_project/blob/voye_01/collection/voye_frontend_config.json
 from django.db import models
+from bson import ObjectId
 
 class FrontendConfig(models.Model):
     id = models.AutoField(primary_key=True)
@@ -12,5 +13,5 @@ class FrontendConfig(models.Model):
     create_date = models.DateTimeField(auto_now_add=True)
     write_date = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return self.user_id
+ class Meta:
+    db_table = 'index_document'
