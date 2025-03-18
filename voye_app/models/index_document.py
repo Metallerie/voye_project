@@ -1,6 +1,6 @@
 from djongo import models
 from bson import ObjectId
-from django.utils import timezone
+from django.utils import timezone  # Ajoutez cette ligne
 
 class IndexDocument(models.Model):
     id = models.ObjectIdField(default=ObjectId, primary_key=True, unique=True)
@@ -14,14 +14,15 @@ class IndexDocument(models.Model):
     file_size = models.IntegerField()
     checksum = models.CharField(max_length=255, default='default_value')  # Définir une valeur par défaut appropriée
     timestamp = models.DateTimeField()
-    create_date = models.DateTimeField(auto_now_add=True, default=timezone.now)
-    write_date = models.DateTimeField(auto_now=True, default=timezone.now)
+    create_date = models.DateTimeField(auto_now_add=True)
+    write_date = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'index_document'
   
     def get_full_json_path(self):
-        return f"{self.storage_path_json.rstrip('/')}/{self.json_filename['path']}" if 'path' in self.json_filename else None        
+        return f"{self.storage_path_json.rstrip('/')}/{self.json_filename['path']}" if 'path' in self.json_filename else None
+        
     def get_previous_document(self):
         return IndexDocument.objects.filter(pk__lt=self.pk).order_by('-pk').first()
 
