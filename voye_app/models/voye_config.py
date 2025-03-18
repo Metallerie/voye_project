@@ -1,7 +1,6 @@
-from djongo import models
+from djongo.db import models
 from bson import ObjectId
 
-from django.db import models
 
 class VoyeConfig(models.Model):
     id = models.AutoField(primary_key=True)
