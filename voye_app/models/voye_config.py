@@ -1,4 +1,4 @@
-from djongo.db import models
+from djongo import models
 from bson import ObjectId
 
 
