@@ -1,19 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Liste des Documents</title>
-</head>
-<body>
-    <h1>Liste des Documents</h1>
-    <ul>
-        {% for document in documents %}
-            {% if document.id %}
-                <li><a href="{% url 'document_view' pk=document.id %}">{{ document.original_filename }}</a></li>
-            {% else %}
-                <li>{{ document.original_filename }} (pas de lien disponible)</li>
-            {% endif %}
-        {% endfor %}
-    </ul>
-</body>
-</html>
+<?xml version="1.0" encoding="utf-8"?>
+<voye xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="docs/voye_project.xsd">
+    <data>
+        <record id="list_document_view" model="ir.ui.view">
+            <field name="name">document.list.view</field>
+            <field name="model">voye_db.index.document</field>
+            <field name="arch" type="xml">
+                <form string="Liste des Documents">
+                    <template>
+                        <link rel="stylesheet" type="text/css" href="/static/css/index_document_list.css"/>
+                    </template>
+                    <t t-call="header_template"/>
+                    <group>
+                        <group string="Liste des Documents" colspan="2">
+                            <ul>
+                                {% for document in documents %}
+                                    {% if document.id %}
+                                        <li><a href="{% url 'document_view' pk=document.id %}">{{ document.original_filename }}</a></li>
+                                    {% else %}
+                                        <li>{{ document.original_filename }} (pas de lien disponible)</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        </group>
+                    </group>
+                    <t t-call="message_box_template"/>
+                </form>
+            </field>
+        </record>
+    </data>
+</voye>
